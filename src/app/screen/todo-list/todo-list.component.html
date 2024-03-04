@@ -1,0 +1,218 @@
+<div class="login_header">    
+    <mat-toolbar color="primary">
+        <button mat-icon-button class="example-icon" 
+          aria-label="Example icon-button with menu icon"
+          routerLink="/login">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <span class="example-spacer"></span>
+        <span>ToDo管理ツール</span>        
+        <span class="example-spacer"></span>
+        <span class="user-name">{{username}}</span>
+    </mat-toolbar>
+</div>
+<!-- <div class="space_row"></div> -->
+<!-- <div class="menu_area">
+    <button mat-raised-button 
+        class="menu_button"
+        color="primary" 
+        (click)="button_cartServing_click()">1.棚車配膳</button>
+</div>
+<div class="space_row"></div>
+<div class="menu_area">
+    <button mat-raised-button 
+        class="menu_button"
+        color="primary" 
+        (click)="button_storingparts_click()">2.＊＊＊＊</button>
+</div>
+<div class="space_row"></div>
+<div class="menu_area">
+    <button mat-raised-button 
+        class="menu_button"
+        color="primary" 
+        (click)="button_directderiverysort_click()">3.＊＊＊＊</button>
+</div> -->
+
+<div class="space_row"></div>
+
+<!-- <div class="space-small"></div> -->
+<!-- <div class="base-ground"> 
+  <div class="field-ground">
+    <mat-form-field appearance="fill" 
+                    [style.width]="dpic_width" 
+                    [style.font-size]="dpic_fontsize" id="box1">
+      <mat-label>納期日</mat-label>
+      <input matInput [matDatepicker]="picker" [(ngModel)]="defaultDate" 
+        (dateChange)="onChangeDate($event)"  >
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker touchUi #picker></mat-datepicker>
+    </mat-form-field>  
+  </div>
+</div> -->
+<mat-form-field class="input-field factory-input">
+    <mat-label>日付</mat-label>
+    <input matInput placeholder="日付" 
+        autofocus #input1 class="ime-off" name="factory_input" 
+        (keyup.enter)="keyup_enter_search()"
+        [(ngModel)]="targetDate" />
+</mat-form-field>
+
+<button type="button" name="button" (click)="clickIpcTestBtn()">
+    IPC呼び出し
+</button>
+
+<div class="table-area">
+    <table mat-table [dataSource]="dataSource" 
+                      class="mat-elevation-z8"
+                      >
+  
+      <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef
+              class="table-header" 
+              [style.font-size]="tbl_fontsize"> 
+              日付 
+          </th>
+          <td mat-cell *matCellDef="let element"
+              class="table-cell" 
+              [style.font-size]="tbl_fontsize"> 
+              <span class="link" (click)="onClickLink(element.date)">
+                {{element.date}}
+              </span> 
+          </td>
+      </ng-container>
+  
+      <ng-container matColumnDef="category">
+        <th mat-header-cell *matHeaderCellDef
+            class="table-header"
+            [style.font-size]="tbl_fontsize"> 
+            カテゴリ
+        </th>
+        <td mat-cell *matCellDef="let element"
+            class="table-cell"
+            [style.font-size]="tbl_fontsize"> 
+            {{element.category}} 
+        </td>
+      </ng-container>
+  
+      <ng-container matColumnDef="meeting">
+        <th mat-header-cell *matHeaderCellDef
+            class="table-header"
+            [style.font-size]="tbl_fontsize"> 
+            MTG
+        </th>
+        <td mat-cell *matCellDef="let element"
+            class="table-cell"
+            [style.font-size]="tbl_fontsize"> 
+            {{element.meeting}} 
+        </td>
+      </ng-container>
+  
+      <ng-container matColumnDef="item">
+        <th mat-header-cell *matHeaderCellDef
+            class="table-header"
+            [style.font-size]="tbl_fontsize"> 
+            ToDo項目
+        </th>
+        <td mat-cell *matCellDef="let element"
+            class="table-cell"
+            [style.font-size]="tbl_fontsize"> 
+            {{element.item}} 
+        </td>
+      </ng-container>
+      
+      <ng-container matColumnDef="begintime">
+        <th mat-header-cell *matHeaderCellDef 
+            class="table-header qright"
+            [style.font-size]="tbl_fontsize"> 
+            開始時刻 
+        </th>
+        <td mat-cell *matCellDef="let element"
+            class="table-cell qright"
+            [style.font-size]="tbl_fontsize"> 
+            {{element.begintime}} 
+        </td>
+      </ng-container>
+    
+      <ng-container matColumnDef="endtime">
+        <th mat-header-cell *matHeaderCellDef 
+            class="table-header"
+            [style.font-size]="tbl_fontsize"> 
+            終了時刻
+        </th>
+        <td mat-cell *matCellDef="let element"
+            class="table-cell"
+            [style.font-size]="tbl_fontsize"> 
+            {{element.endtime}} 
+        </td>
+      </ng-container>
+  
+      <ng-container matColumnDef="plantime">
+        <th mat-header-cell *matHeaderCellDef 
+            class="table-header"
+            [style.font-size]="tbl_fontsize"> 
+            計画時間
+        </th>
+        <td mat-cell *matCellDef="let element"
+            class="table-cell"
+            [style.font-size]="tbl_fontsize"> 
+            {{element.plantime}} 
+        </td>
+      </ng-container>
+  
+      <ng-container matColumnDef="actualtime">
+        <th mat-header-cell *matHeaderCellDef 
+            class="table-header"
+            [style.font-size]="tbl_fontsize"> 
+            実績時間 
+        </th>
+        <td mat-cell *matCellDef="let element"
+            class="table-cell"
+            [style.font-size]="tbl_fontsize"> 
+            {{element.actualtime}} 
+        </td>
+      </ng-container>
+  
+      <ng-container matColumnDef="diffefent">
+        <th mat-header-cell *matHeaderCellDef 
+            class="table-header"
+            [style.font-size]="tbl_fontsize"> 
+            差異 
+        </th>
+        <td mat-cell *matCellDef="let element"
+            class="table-cell"
+            [style.font-size]="tbl_fontsize"> 
+            {{element.diffefent}} 
+        </td>
+      </ng-container>
+  
+      <ng-container matColumnDef="planbegintime">
+        <th mat-header-cell *matHeaderCellDef 
+            class="table-header"
+            [style.font-size]="tbl_fontsize"> 
+            計画時刻
+        </th>
+        <td mat-cell *matCellDef="let element"
+            class="table-cell"
+            [style.font-size]="tbl_fontsize"> 
+            {{element.planbegintime}} 
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="etc">
+        <th mat-header-cell *matHeaderCellDef 
+            class="table-header"
+            [style.font-size]="tbl_fontsize"> 
+            備考
+        </th>
+        <td mat-cell *matCellDef="let element"
+            class="table-cell"
+            [style.font-size]="tbl_fontsize"> 
+            {{element.etc}} 
+        </td>
+      </ng-container>
+  
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+</div>
+    
