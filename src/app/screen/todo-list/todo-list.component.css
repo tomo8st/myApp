@@ -29,3 +29,8 @@
 .menu_area {
     text-align: center
 }
+
+/* テーブルの行 */
+.my-row {
+    height: 1.2em;
+}

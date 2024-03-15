@@ -26,6 +26,7 @@ export class TodoListComponent /* implements OnInit */ {
   dataSource: any;
   tbl_fontsize = '9pt';
   displayedColumns: string[] =[
+                               'command',           // 操作
                                'date',              // 日付
                                'category',          // カテゴリ
                                'meeting',           // MTG
@@ -76,6 +77,24 @@ export class TodoListComponent /* implements OnInit */ {
 
   }
 
+  public onClickClearButton() {
+    this.dataSource = [{}];
+  }
+
+
+  public onClickPlusButton() {
+
+    console.log("onClickPlusButton()");
+    var addData = {"date":"2023/12/01", "category":"CAT-1", "meeting":"◯", "item":"運動-1", "begintime":"11:20", 
+                  "endtime":"11:50", "plantime":"10:00", "actualtime":"15:00", "diffefent":"5:00", "planbegintime":"11:40"};
+    
+    this.dataSource.push(addData);
+    var wkData = JSON.stringify(this.dataSource);
+    console.log(`wkData = ${wkData}`);
+    this.dataSource = JSON.parse(wkData);
+
+  }
+  
   button_cartServing_click() {
 
   }
