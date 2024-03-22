@@ -18,7 +18,7 @@
     <mat-label>日付</mat-label>
     <input matInput placeholder="日付" 
         autofocus #input1 class="ime-off" name="factory_input" 
-        (keyup.enter)="keyup_enter_search()"
+        (keyup.enter)="onKeyupEnterSearch()"
         [(ngModel)]="targetDate" />
 </mat-form-field>
 
@@ -41,12 +41,12 @@
       <ng-container matColumnDef="command">
           <th mat-header-cell *matHeaderCellDef
               class="table-header" 
-              [style.font-size]="tbl_fontsize"> 
+              [style.font-size]="tblFontsize"> 
               操作 
           </th>
           <td mat-cell *matCellDef="let element"
               class="table-cell" 
-              [style.font-size]="tbl_fontsize"> 
+              [style.font-size]="tblFontsize"> 
               <!-- <span class="link" (click)="onClickLink(element.date)"> -->
                 <button type="button" name="button" (click)="onClickPlusButton()">
                   +
@@ -58,12 +58,12 @@
       <ng-container matColumnDef="date">
           <th mat-header-cell *matHeaderCellDef
               class="table-header" 
-              [style.font-size]="tbl_fontsize"> 
+              [style.font-size]="tblFontsize"> 
               日付 
           </th>
           <td mat-cell *matCellDef="let element"
               class="table-cell" 
-              [style.font-size]="tbl_fontsize"> 
+              [style.font-size]="tblFontsize"> 
               <span class="link" (click)="onClickLink(element.date)">
                 {{element.date}}
               </span> 
@@ -73,12 +73,12 @@
       <ng-container matColumnDef="category">
         <th mat-header-cell *matHeaderCellDef
             class="table-header"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             カテゴリ
         </th>
         <td mat-cell *matCellDef="let element"
             class="table-cell"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             {{element.category}} 
         </td>
       </ng-container>
@@ -86,12 +86,12 @@
       <ng-container matColumnDef="meeting">
         <th mat-header-cell *matHeaderCellDef
             class="table-header"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             MTG
         </th>
         <td mat-cell *matCellDef="let element"
             class="table-cell"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             {{element.meeting}} 
         </td>
       </ng-container>
@@ -99,12 +99,12 @@
       <ng-container matColumnDef="item">
         <th mat-header-cell *matHeaderCellDef
             class="table-header"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             ToDo項目
         </th>
         <td mat-cell *matCellDef="let element"
             class="table-cell"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             {{element.item}} 
         </td>
       </ng-container>
@@ -112,12 +112,12 @@
       <ng-container matColumnDef="begintime">
         <th mat-header-cell *matHeaderCellDef 
             class="table-header qright"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             開始時刻 
         </th>
         <td mat-cell *matCellDef="let element"
             class="table-cell qright"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             {{element.begintime}} 
         </td>
       </ng-container>
@@ -125,12 +125,12 @@
       <ng-container matColumnDef="endtime">
         <th mat-header-cell *matHeaderCellDef 
             class="table-header"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             終了時刻
         </th>
         <td mat-cell *matCellDef="let element"
             class="table-cell"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             {{element.endtime}} 
         </td>
       </ng-container>
@@ -138,12 +138,12 @@
       <ng-container matColumnDef="plantime">
         <th mat-header-cell *matHeaderCellDef 
             class="table-header"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             計画時間
         </th>
         <td mat-cell *matCellDef="let element"
             class="table-cell"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             {{element.plantime}} 
         </td>
       </ng-container>
@@ -151,12 +151,12 @@
       <ng-container matColumnDef="actualtime">
         <th mat-header-cell *matHeaderCellDef 
             class="table-header"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             実績時間 
         </th>
         <td mat-cell *matCellDef="let element"
             class="table-cell"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             {{element.actualtime}} 
         </td>
       </ng-container>
@@ -164,12 +164,12 @@
       <ng-container matColumnDef="diffefent">
         <th mat-header-cell *matHeaderCellDef 
             class="table-header"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             差異 
         </th>
         <td mat-cell *matCellDef="let element"
             class="table-cell"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             {{element.diffefent}} 
         </td>
       </ng-container>
@@ -177,12 +177,12 @@
       <ng-container matColumnDef="planbegintime">
         <th mat-header-cell *matHeaderCellDef 
             class="table-header"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             計画時刻
         </th>
         <td mat-cell *matCellDef="let element"
             class="table-cell"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             {{element.planbegintime}} 
         </td>
       </ng-container>
@@ -190,12 +190,12 @@
       <ng-container matColumnDef="etc">
         <th mat-header-cell *matHeaderCellDef 
             class="table-header"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             備考
         </th>
         <td mat-cell *matCellDef="let element"
             class="table-cell"
-            [style.font-size]="tbl_fontsize"> 
+            [style.font-size]="tblFontsize"> 
             {{element.etc}} 
         </td>
       </ng-container>

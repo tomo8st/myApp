@@ -13,6 +13,16 @@ import { MatInputModule } from '@angular/material/input';
 import { IpcRenderer } from 'electron';
 import { ipcRenderer } from 'electron';
 
+/**
+ * 
+ * 変数：camelCase
+ * クラス：PascalCase
+ * クラスメソッド：camelCase
+ * インターフェース：PascalCase
+ * 
+ * ※snake_caseは使用しない
+ */
+
 @Component({
   selector: 'app-todo-list',
   standalone: true,
@@ -24,7 +34,7 @@ import { ipcRenderer } from 'electron';
 export class TodoListComponent /* implements OnInit */ {
   username = 'Test Name';
   dataSource: any;
-  tbl_fontsize = '9pt';
+  tblFontsize = '9pt';
   displayedColumns: string[] =[
                                'command',           // 操作
                                'date',              // 日付
@@ -104,11 +114,16 @@ export class TodoListComponent /* implements OnInit */ {
 
   }
   
-  
+  public onClickLink(date: string){
 
-  onChangeDate(event: MatDatepickerInputEvent<Date>) {
+  }
+
+  public onChangeDate(event: MatDatepickerInputEvent<Date>) {
 
   }
  
+  public onKeyupEnterSearch() {
+    console.log(`onKeyupEnterSearch()`);
+  }
 
 }
