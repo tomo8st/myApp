@@ -48,7 +48,11 @@ export class TodoListComponent /* implements OnInit */ {
 
   constructor() {}
 
-  // ボタンクリックで ipc の指定イベント呼び出し
+  /**
+   * データ表示ボタン押下イベント
+   * 
+   *   ボタンクリックで ipc の指定イベント呼び出し
+   */
   public clickIpcTestBtn() {
     
     // if (this.ipc === undefined) {
@@ -77,11 +81,16 @@ export class TodoListComponent /* implements OnInit */ {
 
   }
 
+  /**
+   * クリアボタン押下イベント
+   */
   public onClickClearButton() {
     this.dataSource = [{}];
   }
 
-
+  /**
+   * プラスボタン押下イベント
+   */
   public onClickPlusButton() {
 
     console.log("onClickPlusButton()");
@@ -95,66 +104,11 @@ export class TodoListComponent /* implements OnInit */ {
 
   }
   
-  button_cartServing_click() {
-
-  }
-
-  button_storingparts_click() {
-
-  }
-
-  button_directderiverysort_click() {
-
-  }
-
-  onClickLink(elem: string) {
-
-  }
+  
 
   onChangeDate(event: MatDatepickerInputEvent<Date>) {
 
   }
+ 
 
-  keyup_enter_search(){
-
-  }
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-  // 試行錯誤用
-  // constructor() {
-    
-    // ipcRenderer.on('testIpc', (event, arg) => {
-    //   console.log(arg);
-    // })
-
-    // this.ipc = (window as any).require('electron').ipcRenderer;
-    
-    // this.ipc = window.electronAPI.send('eeee');
-
-    // if ((window as any).require) {
-    //   try {
-    //     this.ipc = (window as any).require('electron').ipcRenderer;
-    //   } catch (e) {
-    //     throw e;
-    //   }
-    // } else {
-    //   console.warn('App not running inside Electron!');
-    // }
-
-    // this.dataSource = JSON.parse(readFileSync('./data.json', 'utf8'));
-    // this.dataSource = [
-    //   {'date':'2023/11/27', 'category':'CAT-1', 'meeting':'◯', 'item':'運動-1','begintime':'11:20', 'endtime':'11:50',
-    //    'plantime':'10:00', 'actualtime':'15:00', 'diffefent':'5:00', 'planbegintime':'11:40'},
-    //   {'date':'2023/11/27', 'category':'CAT-1', 'meeting':'◯', 'item':'運動-1','begintime':'11:20', 'endtime':'11:50',
-    //    'plantime':'10:00', 'actualtime':'15:00', 'diffefent':'5:00', 'planbegintime':'11:40'},
-    //   {'date':'2023/11/27', 'category':'CAT-1', 'meeting':'◯', 'item':'運動-1','begintime':'11:20', 'endtime':'11:50',
-    //    'plantime':'10:00', 'actualtime':'15:00', 'diffefent':'5:00', 'planbegintime':'11:40'},
-    //   {'date':'2023/11/27', 'category':'CAT-1', 'meeting':'◯', 'item':'運動-1','begintime':'11:20', 'endtime':'11:50',
-    //    'plantime':'10:00', 'actualtime':'15:00', 'diffefent':'5:00', 'planbegintime':'11:40'},
-    //   {'date':'2023/11/27', 'category':'CAT-1', 'meeting':'◯', 'item':'運動-1','begintime':'11:20', 'endtime':'11:50',
-    //    'plantime':'10:00', 'actualtime':'15:00', 'diffefent':'5:00', 'planbegintime':'11:40'},
-    //   {'date':'2023/11/27', 'category':'CAT-1', 'meeting':'◯', 'item':'運動-1','begintime':'11:20', 'endtime':'11:50',
-    //    'plantime':'10:00', 'actualtime':'15:00', 'diffefent':'5:00', 'planbegintime':'11:40'},
-    // ]
-  // }
 }
