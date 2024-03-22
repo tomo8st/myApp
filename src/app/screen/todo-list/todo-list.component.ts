@@ -63,7 +63,7 @@ export class TodoListComponent /* implements OnInit */ {
    * 
    *   ボタンクリックで ipc の指定イベント呼び出し
    */
-  public clickIpcTestBtn() {
+  public onClickIpcTestBtn() {
     
     // if (this.ipc === undefined) {
     //   console.log('IPCのテスト-NG');
