@@ -1,6 +1,12 @@
-const fs = require('fs');
+// const fs = require('fs');
+const fs = require('fs').promises;
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('node:path');
+
+// const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+// const path = require('path');
+// const fs = require('fs').promises;
+
 let win;
 
 function createWindow() {
@@ -63,12 +69,31 @@ app.on('activate', () => {
 
 // testIpcイベントの定義 
 ipcMain.handle('testIpc', async (event, arg) => {
-   
+   console.log(`testIpc() start.`);
   // テキストファイルを読み込んで中身を返す。
   let filePath = '/Users/tomo/Documents/Angular/myApp/data.json';
-  let data = fs.readFileSync(filePath, 'utf8');
+  let data = await fs.readFile(filePath, 'utf8');
   return { data };
 
+});
+
+// 配列をJSONファイルに書き込むイベントを追加
+ipcMain.handle('writeArrayToJson', async (event, data) => {
+  try {
+    console.log('受け取ったデータ:', JSON.stringify(data)); // デバッグ用
+
+    // const filePath = path.join(app.getPath('userData'), 'data.json');
+    let filePath = '/Users/tomo/Documents/Angular/myApp/data.json';
+    console.log('保存先パス:', filePath); // デバッグ用
+
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+    console.log('ファイル書き込み成功'); // デバッグ用
+
+    return { success: true, message: 'データが正常に保存されました' };
+  } catch (error) {
+    console.error('ファイル書き込み中にエラーが発生しました:', error);
+    return { success: false, message: `データの保存に失敗しました: ${error.message}` };
+  }
 });
 
 // ホットリロード

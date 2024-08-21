@@ -13,6 +13,10 @@ import { MatInputModule } from '@angular/material/input';
 import { IpcRenderer } from 'electron';
 import { ipcRenderer } from 'electron';
 
+export interface Item {
+  name: string;
+  value: string;
+}
 /**
  * 
  * 変数：camelCase
@@ -54,10 +58,18 @@ export class TodoListComponent /* implements OnInit */ {
   defaultDate: any;
   targetDate = '2023/11/25';
 
+  editableIndex: number | null = null;
+
   private ipc: IpcRenderer | undefined;
 
   constructor() {}
 
+  toggleEdit(index: number) {
+    if (this.editableIndex !== index) {
+      this.editableIndex = index;  // 他の行をクリックした場合のみ編集モードを変更
+    }
+  }
+  
   /**
    * データ表示ボタン押下イベント
    * 
@@ -84,7 +96,8 @@ export class TodoListComponent /* implements OnInit */ {
     // myapiイベントを引数を渡しながら呼び出す
     //   同時にイベントからの戻り値を受け取る
     (async () => {
-      const message = await (window as any).myapi.send('yes')
+      // const message = await (window as any).myapi.send('yes')
+      const message = await (window as any).myapi.send('testIpc');
       console.log(message);
       this.dataSource = JSON.parse(message.data);
     })();
@@ -124,6 +137,36 @@ export class TodoListComponent /* implements OnInit */ {
  
   public onKeyupEnterSearch() {
     console.log(`onKeyupEnterSearch()`);
+  }
+
+  /**
+   * データ保存のIPCイベントを呼び出す
+   */
+  async onClickSaveButton() {
+    console.log('保存ボタンがクリックされました');
+    const dataToSave = JSON.parse(JSON.stringify(this.dataSource));
+    console.log('保存するデータ:', JSON.stringify(dataToSave));
+    
+    try {
+      const result = await (window as any).myapi.send('writeArrayToJson', dataToSave);
+      console.log('保存結果:', JSON.stringify(result));
+      if (result.success) {
+        console.log('データが正常に保存されました');
+        // 保存成功時の処理（例：ユーザーへの通知など）
+      } else {
+        console.error('データの保存に失敗しました:', result.message);
+        // 失敗時の処理
+      }
+    } catch (error) {
+      console.error('保存中にエラーが発生しました:', error);
+      // エラー時の処理
+    }
+  }
+
+  onClickArrayDisplayButton() {
+    console.log('配列表示ボタンがクリックされました');
+    var wkData = JSON.stringify(this.dataSource);
+    console.log(`wkData = ${wkData}`);
   }
 
 }

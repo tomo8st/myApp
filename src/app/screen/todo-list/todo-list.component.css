@@ -34,3 +34,16 @@
 .my-row {
     height: 1.2em;
 }
+
+.input-cell {
+    width: 100%; /* テーブルセルの幅全体を占める */
+    box-sizing: border-box; /* paddingやborderを幅に含める */
+}
+
+.cell-content {
+    display: inline-block;
+    width: 100%; /* 読み取り専用モードでも同じ幅を確保 */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

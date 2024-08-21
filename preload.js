@@ -5,5 +5,11 @@ const { contextBridge, ipcRenderer } = require('electron')
 //  testIPCイベントを'myapi'として公開する
 //
 contextBridge.exposeInMainWorld('myapi', {
-  send: async (title) => await ipcRenderer.invoke('testIpc', title)
+  send: (channel, data) => {
+    // 許可されたチャンネルのリストを定義
+    let validChannels = ['writeArrayToJson', 'testIpc'];
+    if (validChannels.includes(channel)) {
+      return ipcRenderer.invoke(channel, data);
+    }
+  }
 })
