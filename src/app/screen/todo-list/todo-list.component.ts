@@ -13,12 +13,15 @@ import { MatInputModule } from '@angular/material/input';
 import { IpcRenderer } from 'electron';
 import { ipcRenderer } from 'electron';
 import { DateAdapter, NativeDateAdapter } from '@angular/material/core';
+import { Injectable } from '@angular/core';
 
 export interface Item {
   name: string;
   value: string;
 }
 
+// Datepickerの月間表示の日付に"日"が表示されないようにする
+@Injectable()
 class MyDateAdapter extends NativeDateAdapter {
   override getDateNames(): string[] {
     const dateNames: string[] = [];
@@ -47,7 +50,8 @@ class MyDateAdapter extends NativeDateAdapter {
   templateUrl: './todo-list.component.html',
   styleUrl: './todo-list.component.css',
   providers: [
-    { provide: DateAdapter, useClass: MyDateAdapter }
+    // Datepickerの月間表示の日付に"日"が表示されないようにする
+    { provide: DateAdapter, useClass: MyDateAdapter }   
   ]
 })
 export class TodoListComponent /* implements OnInit */ {
