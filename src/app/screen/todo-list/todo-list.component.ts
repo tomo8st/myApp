@@ -74,11 +74,13 @@ export class TodoListComponent implements OnInit {
                                'delete'             // 削除ボタン列を追加
                               ];
   defaultDate: any;
-  targetDate = new Date();
+  targetDate: Date | null = null;
 
   editableIndex: number | null = null;
 
   private ipc: IpcRenderer | undefined;
+
+  selectedDate: Date | null = null;
 
   constructor() {}                             
 
@@ -86,7 +88,14 @@ export class TodoListComponent implements OnInit {
    * 画面初期化イベント
    */
   ngOnInit() {
+    // ファイルからデータを読み込む
     this.loadData();
+
+    // 日付を設定する
+    this.targetDate = new Date();
+
+    // 日付フィルターを適用する
+    this.applyFilter();
   }
   
   /**
@@ -101,14 +110,17 @@ export class TodoListComponent implements OnInit {
   }
 
   /**
-   * データ読み込み
+   * ファイルからデータを読み込み
    */
-  private loadData() {
-    (async () => {
+  private async loadData() {
+    try {
       const message = await (window as any).myapi.send('testIpc');
-      console.log(message);
+      console.log('読み込んだデータ:', message);
       this.dataSource = JSON.parse(message.data);
-    })();
+    } catch (error) {
+      console.error('データの読み込み中にエラーが発生しました:', error);
+      // エラー処理（例：ユーザーへの通知）
+    }
   }
   
   /**
@@ -184,10 +196,45 @@ export class TodoListComponent implements OnInit {
     }
   }
 
+  /**
+   * 日付変更イベント
+   * @param event 
+   */
   onDateChange(event: MatDatepickerInputEvent<Date>) {
     // 日付が変更されたときの処理をここに記述
     console.log('選択された日付:', event.value);
-    // 必要に応じて、ここで検索処理などを呼び出す
+    this.targetDate = event.value;
+    
+    // 日付フィルターを適用する
+    this.applyFilter();
+  }
+
+  /**
+   * 表示データに日付フィルターを適用する
+   */
+  async applyFilter() {
+    // まず、ファイルからデータを読み込む
+    await this.loadData();
+
+    if (this.targetDate) {
+      const dateString = this.formatDate(this.targetDate);
+      console.log(`フィルター適用日: ${dateString}`);
+      // 読み込んだ全データに対してフィルターを適用
+      this.dataSource = this.dataSource.filter((item: any) => item.date === dateString);
+    }
+    // 日付が選択されていない場合は、loadData()で読み込んだ全データがそのまま表示される
+  }
+
+  /**
+   * 日付を文字列(YYYY/MM/DD)に変換する
+   * @param date 
+   * @returns 
+   */
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}/${month}/${day}`;
   }
 
   /**
@@ -227,7 +274,7 @@ export class TodoListComponent implements OnInit {
   }
 
   /**
-   * 指定されたインデックスの行を削除する
+   * 指定されたインデクスの行を削除する
    * @param index 削除する行のインデックス
    */
   public deleteRow(index: number) {
