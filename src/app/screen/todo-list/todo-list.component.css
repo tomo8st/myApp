@@ -1,4 +1,3 @@
-
 .example-spacer {
     flex: 1 1 auto;
 }
@@ -35,18 +34,37 @@
     height: 1.2em;
 }
 
+/* テーブル全体のスタイル */
+table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+/* セルの共通スタイル */
+td {
+    padding: 0;
+    overflow: hidden;
+}
+
 .input-cell {
-    width: 100%; /* テーブルセルの幅全体を占める */
-    box-sizing: border-box; /* paddingやborderを幅に含める */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .cell-content {
-    display: inline-block;
-    width: 100%; /* 読み取り専用モードでも同じ幅を確保 */
+    display: block;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    padding: 2px 4px;
+    box-sizing: border-box;
 }
 
-
-  
+input.cell-content {
+    border: none;
+    background: transparent;
+    font: inherit;
+    outline: none;
+}
