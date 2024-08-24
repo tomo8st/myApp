@@ -40,7 +40,7 @@ export class TodoListComponent /* implements OnInit */ {
   dataSource: any;
   tblFontsize = '9pt';
   displayedColumns: string[] =[
-                               'command',           // 操作
+                               'edit',              // 編集ボタン列を追加
                                'date',              // 日付
                                'category',          // カテゴリ
                                'meeting',           // MTG
@@ -66,8 +66,10 @@ export class TodoListComponent /* implements OnInit */ {
   constructor() {}
 
   toggleEdit(index: number) {
-    if (this.editableIndex !== index) {
-      this.editableIndex = index;  // 他の行をクリックした場合のみ編集モードを変更
+    if (this.editableIndex === index) {
+      this.editableIndex = null;  // 同じ行の編集ボタンをクリックした場合、編集モードを終了
+    } else {
+      this.editableIndex = index;  // 他の行の編集ボタンをクリックした場合、編集モードを変更
     }
   }
   

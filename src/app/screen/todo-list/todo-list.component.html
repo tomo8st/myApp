@@ -44,6 +44,15 @@
 
 <div class="table-area">
     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" >
+      <ng-container matColumnDef="edit">
+        <th mat-header-cell *matHeaderCellDef> 編集 </th>
+        <td mat-cell *matCellDef="let element; let i = index">
+          <button mat-icon-button (click)="toggleEdit(i)">
+            <mat-icon>{{editableIndex === i ? 'done' : 'edit'}}</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
       <ng-container matColumnDef="command">
           <th mat-header-cell *matHeaderCellDef
               class="table-header" 
@@ -69,7 +78,7 @@
           </th>
           <td mat-cell *matCellDef="let element; let i = index"
               class="table-cell" 
-              [style.font-size]="tblFontsize" (click)="toggleEdit(i)">
+              [style.font-size]="tblFontsize">
               <ng-container *ngIf="editableIndex === i; else readOnly">
                 <input matInput [(ngModel)]="element.date" class="input-cell" />                
               </ng-container>
@@ -87,7 +96,7 @@
         </th>
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
-            [style.font-size]="tblFontsize" (click)="toggleEdit(i)"> 
+            [style.font-size]="tblFontsize">
               <ng-container *ngIf="editableIndex === i; else readOnly">
                 <input matInput [(ngModel)]="element.category" class="input-cell" />                
               </ng-container>
@@ -105,7 +114,7 @@
         </th>
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
-            [style.font-size]="tblFontsize" (click)="toggleEdit(i)"> 
+            [style.font-size]="tblFontsize">
               <ng-container *ngIf="editableIndex === i; else readOnly">
                 <input matInput [(ngModel)]="element.meeting" class="input-cell" />                
               </ng-container>
@@ -123,7 +132,7 @@
         </th>
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
-            [style.font-size]="tblFontsize" (click)="toggleEdit(i)"> 
+            [style.font-size]="tblFontsize">
               <ng-container *ngIf="editableIndex === i; else readOnly">
                 <input matInput [(ngModel)]="element.item" class="input-cell" />                
               </ng-container>
@@ -141,7 +150,7 @@
         </th>
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell qright"
-            [style.font-size]="tblFontsize" (click)="toggleEdit(i)"> 
+            [style.font-size]="tblFontsize">
               <ng-container *ngIf="editableIndex === i; else readOnly">
                 <input matInput [(ngModel)]="element.begintime" class="input-cell" />                
               </ng-container>
@@ -159,7 +168,7 @@
         </th>
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
-            [style.font-size]="tblFontsize" (click)="toggleEdit(i)"> 
+            [style.font-size]="tblFontsize">
               <ng-container *ngIf="editableIndex === i; else readOnly">
                 <input matInput [(ngModel)]="element.endtime" class="input-cell" />                
               </ng-container>
@@ -177,7 +186,7 @@
         </th>
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
-            [style.font-size]="tblFontsize" (click)="toggleEdit(i)"> 
+            [style.font-size]="tblFontsize">
               <ng-container *ngIf="editableIndex === i; else readOnly">
                 <input matInput [(ngModel)]="element.plantime" class="input-cell" />                
               </ng-container>
@@ -195,7 +204,7 @@
         </th>
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
-            [style.font-size]="tblFontsize" (click)="toggleEdit(i)"> 
+            [style.font-size]="tblFontsize">
               <ng-container *ngIf="editableIndex === i; else readOnly">
                 <input matInput [(ngModel)]="element.actualtime" class="input-cell" />                
               </ng-container>
@@ -213,7 +222,7 @@
         </th>
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
-            [style.font-size]="tblFontsize" (click)="toggleEdit(i)"> 
+            [style.font-size]="tblFontsize">
               <ng-container *ngIf="editableIndex === i; else readOnly">
                 <input matInput [(ngModel)]="element.diffefent" class="input-cell" />                
               </ng-container>
@@ -231,7 +240,7 @@
         </th>
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
-            [style.font-size]="tblFontsize" (click)="toggleEdit(i)"> 
+            [style.font-size]="tblFontsize">
               <ng-container *ngIf="editableIndex === i; else readOnly">
                 <input matInput [(ngModel)]="element.planbegintime" class="input-cell" />                
               </ng-container>
@@ -249,7 +258,7 @@
         </th>
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
-            [style.font-size]="tblFontsize" (click)="toggleEdit(i)"> 
+            [style.font-size]="tblFontsize">
               <ng-container *ngIf="editableIndex === i; else readOnly">
                 <input matInput [(ngModel)]="element.etc" class="input-cell" />                
               </ng-container>
