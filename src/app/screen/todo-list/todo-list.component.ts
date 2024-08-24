@@ -41,6 +41,7 @@ export class TodoListComponent /* implements OnInit */ {
   tblFontsize = '9pt';
   displayedColumns: string[] =[
                                'edit',              // 編集ボタン列を追加
+                               'moveRow',           // 行の移動ボタン列を追加
                                'date',              // 日付
                                'category',          // カテゴリ
                                'meeting',           // MTG
@@ -79,8 +80,6 @@ export class TodoListComponent /* implements OnInit */ {
    *   ボタンクリックで ipc の指定イベント呼び出し
    */
   public onClickIpcTestBtn() {
-    
-
     // myapiイベントを引数を渡しながら呼び出す
     //   同時にイベントからの戻り値を受け取る
     (async () => {
@@ -169,21 +168,28 @@ export class TodoListComponent /* implements OnInit */ {
     }
   }
 
-    // if (this.ipc === undefined) {
-    //   console.log('IPCのテスト-NG');
-    //   return;
-    // }
-    // this.ipc.send('testIpc');
-    // window.electronAIP.send("test");
-    // ipcRenderer.send('testIpc');
+  /**
+   * 指定された行を上に移動する
+   * @param index 移動する行のインデックス
+   */
+  moveRowUp(index: number) {
+    if (index > 0) {
+      const item = this.dataSource.splice(index, 1)[0];
+      this.dataSource.splice(index - 1, 0, item);
+      this.dataSource = [...this.dataSource];
+    }
+  }
 
-
-
-    // 下記のページでやっと正常実行した。
-    // https://blog.katsubemakito.net/nodejs/electron/ipc-for-contextbridge
-
-    // windowの認識がTypeScriptでは少し異なるとのこと
-    // https://blog.tanebox.com/archives/1757/
-    
+  /**
+   * 指定された行を下に移動する
+   * @param index 移動する行のインデックス
+   */
+  moveRowDown(index: number) {
+    if (index < this.dataSource.length - 1) {
+      const item = this.dataSource.splice(index, 1)[0];
+      this.dataSource.splice(index + 1, 0, item);
+      this.dataSource = [...this.dataSource];
+    }
+  }
 
 }
