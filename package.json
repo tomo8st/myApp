@@ -20,9 +20,11 @@
     "@angular/core": "^17.0.0",
     "@angular/forms": "^17.0.0",
     "@angular/material": "^17.0.1",
+    "@angular/material-date-fns-adapter": "^17.3.10",
     "@angular/platform-browser": "^17.0.0",
     "@angular/platform-browser-dynamic": "^17.0.0",
     "@angular/router": "^17.0.0",
+    "date-fns": "^3.6.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.2"
@@ -32,6 +34,8 @@
     "@angular/cli": "^17.0.0",
     "@angular/compiler-cli": "^17.0.0",
     "@types/jasmine": "~5.1.0",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
     "electron": "^27.0.4",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
@@ -40,9 +44,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "nodemon": "^3.1.4",
-    "concurrently": "^8.2.2",
     "typescript": "~5.2.2",
-    "cross-env": "^7.0.3",
     "wait-on": "^7.2.0"
   }
 }

@@ -12,11 +12,23 @@ import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { IpcRenderer } from 'electron';
 import { ipcRenderer } from 'electron';
+import { DateAdapter, NativeDateAdapter } from '@angular/material/core';
 
 export interface Item {
   name: string;
   value: string;
 }
+
+class MyDateAdapter extends NativeDateAdapter {
+  override getDateNames(): string[] {
+    const dateNames: string[] = [];
+    for (let i = 0; i < 31; i++) {
+      dateNames[i] = String(i + 1);
+    }
+    return dateNames;
+  }
+}
+
 /**
  * 
  * 変数：camelCase
@@ -33,7 +45,10 @@ export interface Item {
   imports: [CommonModule, FormsModule, MatButtonModule, MatToolbarModule, MatIconModule, 
             MatTableModule, MatFormFieldModule, MatInputModule, MatDatepickerModule ],
   templateUrl: './todo-list.component.html',
-  styleUrl: './todo-list.component.css'
+  styleUrl: './todo-list.component.css',
+  providers: [
+    { provide: DateAdapter, useClass: MyDateAdapter }
+  ]
 })
 export class TodoListComponent /* implements OnInit */ {
   username = 'Test Name';
@@ -117,11 +132,7 @@ export class TodoListComponent /* implements OnInit */ {
   public onClickLink(date: string){
 
   }
-
-  public onChangeDate(event: MatDatepickerInputEvent<Date>) {
-
-  }
- 
+   
   public onKeyupEnterSearch() {
     console.log(`onKeyupEnterSearch()`);
   }
@@ -190,6 +201,12 @@ export class TodoListComponent /* implements OnInit */ {
       this.dataSource.splice(index + 1, 0, item);
       this.dataSource = [...this.dataSource];
     }
+  }
+
+  onDateChange(event: MatDatepickerInputEvent<Date>) {
+    // 日付が変更されたときの処理をここに記述
+    console.log('選択された日付:', event.value);
+    // 必要に応じて、ここで検索処理などを呼び出す
   }
 
 }
