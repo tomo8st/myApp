@@ -57,7 +57,6 @@ class MyDateAdapter extends NativeDateAdapter {
 export class TodoListComponent implements OnInit {
   username = 'Test Name';
   dataSource: any;
-  tblFontsize = '9pt';
   displayedColumns: string[] =[
                                'edit',              // 編集ボタン列を追加
                                'moveRow',           // 行の移動ボタン列を追加

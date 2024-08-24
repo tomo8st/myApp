@@ -68,3 +68,29 @@ input.cell-content {
     font: inherit;
     outline: none;
 }
+
+/* テーブルセルのスタイルを統一 */
+.mat-cell,
+.mat-header-cell,
+.mat-cell input,
+input.mat-input-element {
+  font-family: inherit;
+  font-size: 9pt; /* すべての要素で同じフォントサイズを使用 */
+}
+
+/* 編集モード時の入力フィールドのスタイル */
+.mat-cell input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  padding: inherit;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+/* フォーカス時のスタイル（オプション） */
+.mat-cell input:focus {
+  outline: none;
+  background-color: rgba(0, 0, 0, 0.05);
+}
