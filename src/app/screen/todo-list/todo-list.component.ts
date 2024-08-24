@@ -55,8 +55,8 @@ class MyDateAdapter extends NativeDateAdapter {
   ]
 })
 export class TodoListComponent implements OnInit {
-  username = 'Test Name';
-  dataSource: any;
+  username = 'Test Name';             // ユーザー名
+  dataSource: any;                    // データソース
   displayedColumns: string[] =[
                                'edit',              // 編集ボタン列を追加
                                'moveRow',           // 行の移動ボタン列を追加
@@ -73,14 +73,11 @@ export class TodoListComponent implements OnInit {
                                'etc',               // 備考
                                'delete'             // 削除ボタン列を追加
                               ];
-  defaultDate: any;
-  targetDate: Date | null = null;
-
-  editableIndex: number | null = null;
-
-  private ipc: IpcRenderer | undefined;
-
-  selectedDate: Date | null = null;
+  defaultDate: any;                       // デフォルトの日付
+  targetDate: Date | null = null;         // 日付フィルターの日付    
+  editableIndex: number | null = null;    // 編集可能な行のインデックス
+  private ipc: IpcRenderer | undefined;   // IPC通信インターフェース
+  selectedDate: Date | null = null;       // 選択された日付
 
   constructor() {}                             
 
