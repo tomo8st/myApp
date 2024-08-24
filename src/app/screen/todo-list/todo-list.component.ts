@@ -64,12 +64,12 @@ export class TodoListComponent /* implements OnInit */ {
   private ipc: IpcRenderer | undefined;
 
   constructor() {}
-
+                              
   toggleEdit(index: number) {
     if (this.editableIndex === index) {
-      this.editableIndex = null;  // 同じ行の編集ボタンをクリックした場合、編集モードを終了
+      this.editableIndex = null;  // 同じ行をクリックした場合、編集モードを終了
     } else {
-      this.editableIndex = index;  // 他の行の編集ボタンをクリックした場合、編集モードを変更
+      this.editableIndex = index;  // 他の行をクリックした場合、編集モードを変更
     }
   }
   

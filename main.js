@@ -1,11 +1,8 @@
-// const fs = require('fs');
 const fs = require('fs').promises;
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('node:path');
-
-// const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 // const path = require('path');
-// const fs = require('fs').promises;
+const url = require('url');
 
 let win;
 
@@ -22,14 +19,17 @@ function createWindow() {
     }
   })
 
-  
-
   // ウインドウに表示する内容
-  win.loadFile('dist/my-app/browser/index.html');
+  // win.loadFile('dist/my-app/browser/index.html');
 
-  // win.webContents.on('did-fail-load', () => {
-  //   win.webContents.send('testIpc', 'wwwwwwww');
-  // });
+  // 開発モードの場合は localhost:4200 を読み込む
+  const startUrl = process.env.ELECTRON_START_URL || url.format({
+    pathname: path.join(__dirname, '/dist/index.html'),
+    protocol: 'file:',
+    slashes: true
+  });
+
+  win.loadURL(startUrl);
 
   // デバッグ画面表示
   win.webContents.openDevTools();
@@ -41,15 +41,7 @@ function createWindow() {
 }
 
 // アプリが初期化されたとき（起動されたとき）
-// app.on('ready', () => {
-  
-//   createWindow();
-// })
 app.whenReady().then(() => {
-  // ipcMain.on('testIpc', (event, arg) => {
-  //   console.log('IPCのテスト[' + arg + ']');
-  //   // event.sender.send('testIpc2', 'pong');
-  // });
   createWindow();
 })
 
@@ -76,7 +68,6 @@ ipcMain.handle('testIpc', async (event, arg) => {
   return { data };
 
 });
-
 // 配列をJSONファイルに書き込むイベントを追加
 ipcMain.handle('writeArrayToJson', async (event, data) => {
   try {
@@ -95,37 +86,3 @@ ipcMain.handle('writeArrayToJson', async (event, data) => {
     return { success: false, message: `データの保存に失敗しました: ${error.message}` };
   }
 });
-
-// ホットリロード
-// https://qiita.com/ganyariya/items/982803466e22dc53eaeb
-
-//
-// 試行錯誤用
-// testIpcイベントの定義 
-// ipcMain.handle('testIpc', async (event, arg) => {
-   
-  // テキストファイルを読み込んで中身を返す。
-  // let filePath = '/Users/tomo/Documents/Angular/myApp/data.json';
-  // let data = fs.readFileSync(filePath, 'utf8');
-  // return { data };
-
-  //
-  // ファイル選択ダイアログを表示してファイルを選択させる方法
-  //
-  // const { canceled, filePaths } = await dialog.showOpenDialog({
-  //   filters: [
-  //     { name: 'Documents', extensions: ['txt'] }
-  //   ]
-  // })
-  // console.log(`filePaths = ${filePaths}`);
-  // const data = filePaths.map((filePath) =>
-  //   fs.readFileSync(filePath, { encoding: 'utf8' })
-  // )
-
-  
-  // テスト用
-  // console.log('IPCのテスト[' + arg + ']');
-  // return(`返す。「${arg}」`);
-
-
-// });
