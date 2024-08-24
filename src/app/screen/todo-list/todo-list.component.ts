@@ -52,6 +52,7 @@ export class TodoListComponent /* implements OnInit */ {
                                'diffefent',         // 差異
                                'planbegintime',     // 計画時刻
                                'etc',               // 備考
+                               'delete'             // 削除ボタン列を追加
                               ];
   //dpic_width = 100;
   //dpic_fontsize = 10;
@@ -77,22 +78,7 @@ export class TodoListComponent /* implements OnInit */ {
    */
   public onClickIpcTestBtn() {
     
-    // if (this.ipc === undefined) {
-    //   console.log('IPCのテスト-NG');
-    //   return;
-    // }
-    // this.ipc.send('testIpc');
-    // window.electronAIP.send("test");
-    // ipcRenderer.send('testIpc');
 
-
-
-    // 下記のページでやっと正常実行した。
-    // https://blog.katsubemakito.net/nodejs/electron/ipc-for-contextbridge
-
-    // windowの認識がTypeScriptでは少し異なるとのこと
-    // https://blog.tanebox.com/archives/1757/
-    
     // myapiイベントを引数を渡しながら呼び出す
     //   同時にイベントからの戻り値を受け取る
     (async () => {
@@ -168,5 +154,34 @@ export class TodoListComponent /* implements OnInit */ {
     var wkData = JSON.stringify(this.dataSource);
     console.log(`wkData = ${wkData}`);
   }
+
+  /**
+   * 指定されたインデックスの行を削除する
+   * @param index 削除する行のインデックス
+   */
+  public deleteRow(index: number) {
+    if (index >= 0 && index < this.dataSource.length) {
+      this.dataSource.splice(index, 1);
+      // データソースの更新をトリガーするために新しい配列を作成
+      this.dataSource = [...this.dataSource];
+    }
+  }
+
+    // if (this.ipc === undefined) {
+    //   console.log('IPCのテスト-NG');
+    //   return;
+    // }
+    // this.ipc.send('testIpc');
+    // window.electronAIP.send("test");
+    // ipcRenderer.send('testIpc');
+
+
+
+    // 下記のページでやっと正常実行した。
+    // https://blog.katsubemakito.net/nodejs/electron/ipc-for-contextbridge
+
+    // windowの認識がTypeScriptでは少し異なるとのこと
+    // https://blog.tanebox.com/archives/1757/
+    
 
 }
