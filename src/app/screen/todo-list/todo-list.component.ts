@@ -1,4 +1,4 @@
-import { Component /*, OnInit */ } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 // import { MatTableModule } from '@angular/material/table';
@@ -54,7 +54,7 @@ class MyDateAdapter extends NativeDateAdapter {
     { provide: DateAdapter, useClass: MyDateAdapter }   
   ]
 })
-export class TodoListComponent /* implements OnInit */ {
+export class TodoListComponent implements OnInit {
   username = 'Test Name';
   dataSource: any;
   tblFontsize = '9pt';
@@ -74,23 +74,20 @@ export class TodoListComponent /* implements OnInit */ {
                                'etc',               // 備考
                                'delete'             // 削除ボタン列を追加
                               ];
-  //dpic_width = 100;
-  //dpic_fontsize = 10;
   defaultDate: any;
-  targetDate = '2023/11/25';
+  targetDate = new Date();
 
   editableIndex: number | null = null;
 
   private ipc: IpcRenderer | undefined;
 
-  constructor() {}
-                              
-  toggleEdit(index: number) {
-    if (this.editableIndex === index) {
-      this.editableIndex = null;  // 同じ行をクリックした場合、編集モードを終了
-    } else {
-      this.editableIndex = index;  // 他の行をクリックした場合、編集モードを変更
-    }
+  constructor() {}                             
+
+  /**
+   * 画面初期化イベント
+   */
+  ngOnInit() {
+    this.loadData();
   }
   
   /**
@@ -101,15 +98,20 @@ export class TodoListComponent /* implements OnInit */ {
   public onClickIpcTestBtn() {
     // myapiイベントを引数を渡しながら呼び出す
     //   同時にイベントからの戻り値を受け取る
+    this.loadData();
+  }
+
+  /**
+   * データ読み込み
+   */
+  private loadData() {
     (async () => {
-      // const message = await (window as any).myapi.send('yes')
       const message = await (window as any).myapi.send('testIpc');
       console.log(message);
       this.dataSource = JSON.parse(message.data);
     })();
-
   }
-
+  
   /**
    * クリアボタン押下イベント
    */
@@ -133,55 +135,31 @@ export class TodoListComponent /* implements OnInit */ {
 
   }
   
+  /**
+   * リンクボタン押下イベント
+   * @param date 
+   */
   public onClickLink(date: string){
 
   }
    
+  /**
+   * エンターキー押下イベント
+   */  
   public onKeyupEnterSearch() {
     console.log(`onKeyupEnterSearch()`);
   }
 
   /**
-   * データ保存のIPCイベントを呼び出す
+   * 配列表示ボタン押下イベント
    */
-  async onClickSaveButton() {
-    console.log('保存ボタンがクリックされました');
-    const dataToSave = JSON.parse(JSON.stringify(this.dataSource));
-    console.log('保存するデータ:', JSON.stringify(dataToSave));
-    
-    try {
-      const result = await (window as any).myapi.send('writeArrayToJson', dataToSave);
-      console.log('保存結果:', JSON.stringify(result));
-      if (result.success) {
-        console.log('データが正常に保存されました');
-        // 保存成功時の処理（例：ユーザーへの通知など）
-      } else {
-        console.error('データの保存に失敗しました:', result.message);
-        // 失敗時の処理
-      }
-    } catch (error) {
-      console.error('保存中にエラーが発生しました:', error);
-      // エラー時の処理
-    }
-  }
-
   onClickArrayDisplayButton() {
     console.log('配列表示ボタンがクリックされました');
     var wkData = JSON.stringify(this.dataSource);
     console.log(`wkData = ${wkData}`);
   }
 
-  /**
-   * 指定されたインデックスの行を削除する
-   * @param index 削除する行のインデックス
-   */
-  public deleteRow(index: number) {
-    if (index >= 0 && index < this.dataSource.length) {
-      this.dataSource.splice(index, 1);
-      // データソースの更新をトリガーするために新しい配列を作成
-      this.dataSource = [...this.dataSource];
-    }
-  }
+  
 
   /**
    * 指定された行を上に移動する
@@ -211,6 +189,54 @@ export class TodoListComponent /* implements OnInit */ {
     // 日付が変更されたときの処理をここに記述
     console.log('選択された日付:', event.value);
     // 必要に応じて、ここで検索処理などを呼び出す
+  }
+
+  /**
+   * エディットボタン押下イベント
+   * @param index 
+   */
+  toggleEdit(index: number) {
+    if (this.editableIndex === index) {
+      this.editableIndex = null;  // 同じ行をクリックした場合、編集モードを終了
+    } else {
+      this.editableIndex = index;  // 他の行をクリックした場合、編集モードを変更
+    }
+  }
+
+  /**
+   * データ保存のIPCイベントを呼び出す
+   */
+  async onClickSaveButton() {
+    console.log('保存ボタンがクリックされました');
+    const dataToSave = JSON.parse(JSON.stringify(this.dataSource));
+    console.log('保存するデータ:', JSON.stringify(dataToSave));
+    
+    try {
+      const result = await (window as any).myapi.send('writeArrayToJson', dataToSave);
+      console.log('保存結果:', JSON.stringify(result));
+      if (result.success) {
+        console.log('データが正常に保存されました');
+        // 保存成功時の処理（例：ユーザーへの通知など）
+      } else {
+        console.error('データの保存に失敗しました:', result.message);
+        // 失敗時の処理
+      }
+    } catch (error) {
+      console.error('保存中にエラーが発生しました:', error);
+      // エラー時の処理
+    }
+  }
+
+  /**
+   * 指定されたインデックスの行を削除する
+   * @param index 削除する行のインデックス
+   */
+  public deleteRow(index: number) {
+    if (index >= 0 && index < this.dataSource.length) {
+      this.dataSource.splice(index, 1);
+      // データソースの更新をトリガーするために新しい配列を作成
+      this.dataSource = [...this.dataSource];
+    }
   }
 
 }
