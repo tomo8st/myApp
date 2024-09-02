@@ -24,24 +24,36 @@
     <mat-datepicker #picker></mat-datepicker>
 </mat-form-field>
 
-<button type="button" name="button" (click)="onClickIpcTestBtn()">
+<!-- <button type="button" name="button" (click)="onClickIpcTestBtn()">
     IPC呼び出し
-</button>
+</button> -->
 
 <button type="button" name="button" (click)="onClickPlusButton()">
-  +
+  ＋
 </button>
 
 <button type="button" name="button" (click)="onClickClearButton()">
   クリア
 </button>
 
-<button type="button" name="button" (click)="onClickSaveButton()">
+<!-- <button type="button" name="button" (click)="onClickSaveButton()">
   保存
-</button>
+</button> -->
 
 <button type="button" name="button" (click)="onClickArrayDisplayButton()">
   配列表示
+</button>
+
+<button type="button" name="button" (click)="onClickDbSaveButton()">
+  DB保存
+</button>
+
+<button type="button" name="button" (click)="onClickDbSearchButton()">
+  DB検索
+</button>
+
+<button type="button" name="button" (click)="onClickTableDeleteButton()">
+  テーブル削除
 </button>
 
 <div class="table-area">
@@ -49,7 +61,7 @@
       <ng-container matColumnDef="edit">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let element; let i = index">
-          <button mat-icon-button (click)="toggleEdit(i)">
+          <button mat-icon-button (click)="onClickEditButton(i)">
             <mat-icon>{{editableIndex === i ? 'done' : 'edit'}}</mat-icon>
           </button>
         </td>
@@ -58,14 +70,30 @@
       <ng-container matColumnDef="moveRow">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let element; let i = index">
-          <button mat-icon-button (click)="moveRowUp(i)" [disabled]="i === 0">
+          <button mat-icon-button (click)="onClickMoveRowUpButton(i)" [disabled]="i === 0">
             <mat-icon>arrow_upward</mat-icon>
           </button>
-          <button mat-icon-button (click)="moveRowDown(i)" [disabled]="i === dataSource.length - 1">
+          <button mat-icon-button (click)="onClickMoveRowDownButton(i)" [disabled]="i === dataSource.length - 1">
             <mat-icon>arrow_downward</mat-icon>
           </button>
         </td>
       </ng-container>
+
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef
+            class="table-header"> 
+            id
+        </th>
+        <td mat-cell *matCellDef="let element; let i = index"
+            class="table-cell">
+            <ng-container *ngIf="editableIndex === i; else readOnly">
+              <input matInput [(ngModel)]="element.id" class="input-cell" />                
+            </ng-container>
+            <ng-template #readOnly>
+              <div class="cell-content">{{element.id}}</div>
+            </ng-template>              
+        </td>
+    </ng-container>
 
       <ng-container matColumnDef="date">
           <th mat-header-cell *matHeaderCellDef
@@ -247,7 +275,7 @@
       <ng-container matColumnDef="delete">
         <th mat-header-cell *matHeaderCellDef> 削除 </th>
         <td mat-cell *matCellDef="let element; let i = index">
-          <button mat-icon-button color="warn" (click)="deleteRow(i)">
+          <button mat-icon-button color="warn" (click)="onClickDeleteButton(i)">
             <mat-icon>delete</mat-icon>
           </button>
         </td>

@@ -9,7 +9,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "start:electron": "ng build --base-href ./ && electron .",
-    "start:electron:dev": "concurrently \"cross-env BROWSER=none ng serve\" \"wait-on http://localhost:4200 && cross-env ELECTRON_START_URL=http://localhost:4200 electron .\""
+    "start:electron:dev": "concurrently \"cross-env BROWSER=none ng serve\" \"wait-on http://localhost:4200 && cross-env ELECTRON_START_URL=http://localhost:4200 electron .\"",
+    "postinstall": "electron-rebuild -f -w sqlite3"
   },
   "private": true,
   "dependencies": {
@@ -24,8 +25,10 @@
     "@angular/platform-browser": "^17.0.0",
     "@angular/platform-browser-dynamic": "^17.0.0",
     "@angular/router": "^17.0.0",
+    "better-sqlite3": "^11.2.1",
     "date-fns": "^3.6.0",
     "rxjs": "~7.8.0",
+    "sqlite3": "^5.1.7",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.2"
   },
@@ -37,6 +40,7 @@
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "electron": "^27.0.4",
+    "electron-rebuild": "^3.2.9",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",

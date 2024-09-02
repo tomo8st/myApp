@@ -4,12 +4,13 @@ const { contextBridge, ipcRenderer } = require('electron')
 //
 //  testIPCイベントを'myapi'として公開する
 //
-contextBridge.exposeInMainWorld('myapi', {
-  send: (channel, data) => {
-    // 許可されたチャンネルのリストを定義
-    let validChannels = ['writeArrayToJson', 'testIpc'];
-    if (validChannels.includes(channel)) {
-      return ipcRenderer.invoke(channel, data);
-    }
-  }
+contextBridge.exposeInMainWorld('electronAPI', {
+  getItems: (item) => ipcRenderer.invoke('getItems', item),
+  insertItem: (item) => ipcRenderer.invoke('insertItem', item),
+  updateItem: (item) => ipcRenderer.invoke('updateItem', item),
+  deleteItem: (item) => ipcRenderer.invoke('deleteItem', item),
+  deleteTable: () => ipcRenderer.invoke('deleteTable'),
+  deleteAndRecreateTable: () => ipcRenderer.invoke('deleteAndRecreateTable'),
+  testIpc: () => ipcRenderer.invoke('testIpc'),
+  writeArrayToJson: (data) => ipcRenderer.invoke('writeArrayToJson', data)
 })

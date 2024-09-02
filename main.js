@@ -1,10 +1,11 @@
 const fs = require('fs').promises;
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('node:path');
-// const path = require('path');
 const url = require('url');
+const Database = require('better-sqlite3');
 
 let win;
+let db;
 
 function createWindow() {
 
@@ -43,6 +44,30 @@ function createWindow() {
 // アプリが初期化されたとき（起動されたとき）
 app.whenReady().then(() => {
   createWindow();
+
+  // データベースファイルのパスを指定
+  const dbPath = path.join(app.getPath('userData'), 'todoDatabase.sqlite');
+
+  // データベース接続
+  db = new Database(dbPath);
+
+  // テーブル作成（必要に応じて）
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS todos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT,
+      category TEXT,
+      meeting TEXT,
+      item TEXT,
+      begintime TEXT,
+      endtime TEXT,
+      plantime TEXT,
+      actualtime TEXT,
+      diffefent TEXT,
+      planbegintime TEXT,
+      etc TEXT
+    )
+  `);
 })
 
 // 全ウインドウが閉じられたとき
@@ -80,9 +105,106 @@ ipcMain.handle('writeArrayToJson', async (event, data) => {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2));
     console.log('ファイル書き込み成功'); // デバッグ用
 
-    return { success: true, message: 'データが正常に保存されました' };
+    return { success: true, message: 'データが正常に保存されしまた' };
   } catch (error) {
     console.error('ファイル書き込み中にエラーが発生しました:', error);
     return { success: false, message: `データの保存に失敗しました: ${error.message}` };
   }
+});
+
+// データ取得のイベントハンドラ
+ipcMain.handle('getItems', async (event, argDate) => {
+  console.log(`getItems() start. argDate = ${argDate}`);
+  const items = db.prepare(`
+    SELECT id, date, category, meeting, item, begintime, endtime, 
+           plantime, actualtime, diffefent, planbegintime, etc 
+    FROM todos
+    WHERE date = ?
+  `).all(argDate);
+  return items;
+});
+
+// データ挿入のイベントハンドラ
+ipcMain.handle('insertItem', async (event, item) => {
+  const stmt = db.prepare(`
+    INSERT INTO todos (
+      date, category, meeting, item, begintime, endtime, 
+      plantime, actualtime, diffefent, planbegintime, etc
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  const info = stmt.run(
+    item.date, item.category, item.meeting, item.item, 
+    item.begintime, item.endtime, item.plantime, item.actualtime, 
+    item.diffefent, item.planbegintime, item.etc
+  );
+  return { id: info.lastInsertRowid };
+});
+
+// データ更新のイベントハンドラ
+ipcMain.handle('updateItem', async (event, item) => {
+  const stmt = db.prepare(`
+    UPDATE todos SET
+      id = ?, date = ?, category = ?, meeting = ?, item = ?, begintime = ?, 
+      endtime = ?, plantime = ?, actualtime = ?, diffefent = ?, 
+      planbegintime = ?, etc = ?
+    WHERE id = ?
+  `);
+  const info = stmt.run(
+    item.id, item.date, item.category, item.meeting, item.item, 
+    item.begintime, item.endtime, item.plantime, item.actualtime, 
+    item.diffefent, item.planbegintime, item.etc, item.id
+  );
+  return { changes: info.changes };
+});
+
+// データ削除のイベントハンドラ
+ipcMain.handle('deleteItem', async (event, item) => {
+  const stmt = db.prepare(`
+    DELETE FROM todos WHERE id = ?
+  `);
+  const info = stmt.run(item.id);
+  return { changes: info.changes };
+});
+
+// テーブル削除のイベントハンドラ
+ipcMain.handle('deleteTable', async (event, item) => {
+  const stmt = db.prepare(`
+    DROP TABLE IF EXISTS todos;
+  `);
+  const info = stmt.run();
+  return { changes: info.changes };
+});
+
+// テーブル削除＆再作成のイベントハンドラ
+ipcMain.handle('deleteAndRecreateTable', async () => {
+  try {
+    db.prepare('DROP TABLE IF EXISTS todos').run();
+    db.prepare(`
+      CREATE TABLE todos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT,
+        category TEXT,
+        meeting TEXT,
+        item TEXT,
+        begintime TEXT,
+        endtime TEXT,
+        plantime TEXT,
+        actualtime TEXT,
+        diffefent TEXT,
+        planbegintime TEXT,
+        etc TEXT
+      )
+    `).run();
+    console.log('Table deleted and recreated successfully');
+    return { success: true, message: 'テーブルが正常に削除され、再作成されました。' };
+  } catch (error) {
+    console.error('Error deleting and recreating table:', error);
+    return { success: false, message: error.message };
+  }
+});
+
+// データ削除のイベントハンドラ
+app.on('will-quit', () => {
+  // アプリ終了時にDBを閉じる
+  if (db) db.close();
 });
