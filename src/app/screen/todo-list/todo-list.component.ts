@@ -299,8 +299,25 @@ export class TodoListComponent implements OnInit {
    * 指定されたインデクスの行を削除する
    * @param index 削除する行のインデッス
    */
-  private deleteRow(index: number) {
+  private async deleteRow(index: number) {
     if (index >= 0 && index < this.dataSource.length) {
+      // DBから行を削除
+      const itemToDelete = this.dataSource[index];
+      try {
+        const result = await (window as any).electronAPI.deleteItem(itemToDelete);
+        console.log('削除結果:', result);
+        if (result.changes > 0) {
+          console.log('行が正常に削除されました');
+        } else {
+          console.warn('削除対象の行が見つかりませんでした');
+        }
+      } catch (error) {
+        console.error('行の削除中にエラーが発生しました:', error);
+        // エラー処理（例：ユーザーへの通知）
+        return; // 削除に失敗した場合、以降の処理を中止
+      }
+
+      // データソースから行を削除
       this.dataSource.splice(index, 1);
       // データソースの更新をトリガーするために新しい配列を作成
       this.dataSource = [...this.dataSource];
@@ -315,6 +332,7 @@ export class TodoListComponent implements OnInit {
       return;
     }
     const addData = {
+      id: null,
       date: formatedDate,
       category: "CAT-1",
       meeting: "◯",
@@ -330,11 +348,11 @@ export class TodoListComponent implements OnInit {
     
     try {
       // データベースに新しい行を挿入
-      // const result = await (window as any).electronAPI.insertItem(addData);
-      // console.log('挿入結果:', result);
+      const result = await (window as any).electronAPI.insertItem(addData);
+      console.log('挿入結果:', result);
 
-      // // 挿入されたデータのIDを取得し、addDataに追加
-      // addData.id = result.id;
+      // 挿入されたデータのIDを取得し、addDataに追加
+      addData.id = result.id;
 
       // データソースに新しい行を追加
       this.dataSource.push(addData);
