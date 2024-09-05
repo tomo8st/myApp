@@ -201,6 +201,10 @@ export class TodoListComponent implements OnInit {
     this.deleteRow(index);
   }
 
+  /**
+   * 編集ボタン押下イベント
+   * @param index 
+   */
   public onClickEditButton(index: number) {
     this.toggleEdit(index);
   }
@@ -425,9 +429,32 @@ export class TodoListComponent implements OnInit {
    * エディットボタン押下イベント
    * @param index 
    */
-  private toggleEdit(index: number) {
+  private async toggleEdit(index: number) {
     if (this.editableIndex === index) {
       this.editableIndex = null;  // 同じ行をクリックした場合、編集モードを終了
+      // 編集中の行のデータを保存
+      const editedItem = this.dataSource[index];
+      try {
+        let result;
+        if (editedItem.id) {
+          // 既存のデータの場合は更新
+          result = await (window as any).electronAPI.updateItem(editedItem);
+          console.log('更新結果:', result);
+        } else {
+          // 新しいデータの場合は挿入
+          result = await (window as any).electronAPI.insertItem(editedItem);
+          console.log('挿入結果:', result);
+          // 新しく挿入されたデータのIDを設定
+          if (result && result.id) {
+            editedItem.id = result.id;
+          }
+        }
+        console.log('データが正常に保存されました');
+        // 保存成功時の処理（例：ユーザーへの通知など）
+      } catch (error) {
+        console.error('データの保存中にエラーが発生しました:', error);
+        // エラー処理（例：ユーザーへの通知）
+      }
     } else {
       this.editableIndex = index;  // 他の行をクリックした場合、編集モードを変更
     }
