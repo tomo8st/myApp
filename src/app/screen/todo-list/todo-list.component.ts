@@ -64,6 +64,7 @@ export class TodoListComponent implements OnInit {
     'moveRow',                            // 行の移動ボタン列を追加
     'id',                                 // id 
     'date',                               // 日付
+    'displayOrder',                       // 表示順
     'category',                           // カテゴリ
     'meeting',                            // MTG
     'item',                               // ToDo項目
@@ -161,11 +162,7 @@ export class TodoListComponent implements OnInit {
    * @param index 移動する行のインデックス
    */
   public onClickMoveRowUpButton(index: number) {
-    if (index > 0) {
-      const item = this.dataSource.splice(index, 1)[0];
-      this.dataSource.splice(index - 1, 0, item);
-      this.dataSource = [...this.dataSource];
-    }
+    this.moveRowUp(index);
   }
 
   /**
@@ -173,11 +170,7 @@ export class TodoListComponent implements OnInit {
    * @param index 移動する行のインデックス
    */
   public onClickMoveRowDownButton(index: number) {
-    if (index < this.dataSource.length - 1) {
-      const item = this.dataSource.splice(index, 1)[0];
-      this.dataSource.splice(index + 1, 0, item);
-      this.dataSource = [...this.dataSource];
-    }
+    this.moveRowDown(index);
   }
 
   /**
@@ -232,8 +225,11 @@ export class TodoListComponent implements OnInit {
     }
   }
 
-  public async onClickTableDeleteButton() {
-    this.deleteTable();
+  /**
+   * テーブル削除&再作成ボタン押下イベント
+   */
+  public async onClickTableDeleteAndRecreateButton() {
+    this.deleteAndRecreateTable();
   }
   
 
@@ -244,9 +240,9 @@ export class TodoListComponent implements OnInit {
   // ------------------------------------------------------------
 
   /**
-   * テーブル削除ボタン押下イベント
+   * テーブル削除＆再作成ボタン押下イベント
    */
-  private async deleteTable() {
+  private async deleteAndRecreateTable() {
     try {
       const result = await (window as any).electronAPI.deleteAndRecreateTable();
       console.log(result.message);
@@ -260,6 +256,7 @@ export class TodoListComponent implements OnInit {
       console.error('テーブル削除と再作成中にエラーが発生しました:', error);
     }
   }
+
   /**
    * ファイルからデータを読み込み
    */
@@ -328,6 +325,10 @@ export class TodoListComponent implements OnInit {
     }
   }
 
+  /**
+   * 新しい行を追加する
+   * @returns 
+   */
   private async addRow() {
     const formatedDate = this.targetDate ? this.formatDate(this.targetDate) : null;
     console.log(`formatedDate = ${formatedDate}`);
@@ -338,6 +339,7 @@ export class TodoListComponent implements OnInit {
     const addData = {
       id: null,
       date: formatedDate,
+      displayOrder: this.dataSource.length + 1,
       category: "CAT-1",
       meeting: "◯",
       item: "運動-1",
@@ -378,6 +380,7 @@ export class TodoListComponent implements OnInit {
         const saveItem = {
           id: item.id, // idフィールドを追加
           date: item.date || '',
+          displayOrder: item.displayOrder || '',
           category: item.category || '',
           meeting: item.meeting || '',
           item: item.item || '',
@@ -460,6 +463,42 @@ export class TodoListComponent implements OnInit {
     }
   }
 
+  /**
+   * 指定された行を上に移動する
+   * @param index 移動する行のインデックス
+   */
+  private async moveRowUp(index: number) {
+    if (index > 0) {
+      const item = this.dataSource.splice(index, 1)[0];
+      this.dataSource.splice(index - 1, 0, item);
+      this.dataSource = [...this.dataSource];
+      this.renumberDisplayOrder();
+    }
+  }
+
+  /**
+   * 指定された行を下に移動する
+   * @param index 移動する行のインデックス
+   */
+  private async moveRowDown(index: number) {
+    if (index < this.dataSource.length - 1) {
+      const item = this.dataSource.splice(index, 1)[0];
+      this.dataSource.splice(index + 1, 0, item);
+      this.dataSource = [...this.dataSource];
+      this.renumberDisplayOrder();
+    }
+  }
+
+  /**
+   * displayOrderの値を再採番する
+   */
+  private async renumberDisplayOrder() {
+    this.dataSource.forEach((item: { displayOrder: any; }, idx: number) => {
+      item.displayOrder = idx + 1;
+    });
+    this.dataSource = [...this.dataSource];
+    this.saveData2db();
+  }
   // ------------------------------------------------------------
   //
   // ユーティリティ群

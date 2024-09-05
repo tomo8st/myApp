@@ -52,7 +52,7 @@
   DB検索
 </button>
 
-<button type="button" name="button" (click)="onClickTableDeleteButton()">
+<button type="button" name="button" (click)="onClickTableDeleteAndRecreateButton()">
   テーブル削除
 </button>
 
@@ -93,10 +93,26 @@
               <div class="cell-content">{{element.id}}</div>
             </ng-template>              
         </td>
-    </ng-container>
+      </ng-container>
+      
+      <ng-container matColumnDef="displayOrder">
+        <th mat-header-cell *matHeaderCellDef
+            class="table-header"> 
+            表示順
+        </th>
+        <td mat-cell *matCellDef="let element; let i = index"
+            class="table-cell">
+            <ng-container *ngIf="editableIndex === i; else readOnly">
+              <input matInput [(ngModel)]="element.displayOrder" class="input-cell" />                
+            </ng-container>
+            <ng-template #readOnly>
+              <div class="cell-content">{{element.displayOrder}}</div>
+            </ng-template>              
+        </td>
+      </ng-container>
 
       <ng-container matColumnDef="date">
-          <th mat-header-cell *matHeaderCellDef
+        <th mat-header-cell *matHeaderCellDef
               class="table-header"> 
               日付
           </th>

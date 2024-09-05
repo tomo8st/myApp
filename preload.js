@@ -9,7 +9,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   insertItem: (item) => ipcRenderer.invoke('insertItem', item),
   updateItem: (item) => ipcRenderer.invoke('updateItem', item),
   deleteItem: (item) => ipcRenderer.invoke('deleteItem', item),
-  deleteTable: () => ipcRenderer.invoke('deleteTable'),
   deleteAndRecreateTable: () => ipcRenderer.invoke('deleteAndRecreateTable'),
   testIpc: () => ipcRenderer.invoke('testIpc'),
   writeArrayToJson: (data) => ipcRenderer.invoke('writeArrayToJson', data)

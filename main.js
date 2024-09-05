@@ -56,6 +56,7 @@ app.whenReady().then(() => {
     CREATE TABLE IF NOT EXISTS todos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT,
+      displayOrder INTEGER,
       category TEXT,
       meeting TEXT,
       item TEXT,
@@ -116,10 +117,11 @@ ipcMain.handle('writeArrayToJson', async (event, data) => {
 ipcMain.handle('getItems', async (event, argDate) => {
   console.log(`getItems() start. argDate = ${argDate}`);
   const items = db.prepare(`
-    SELECT id, date, category, meeting, item, begintime, endtime, 
-           plantime, actualtime, diffefent, planbegintime, etc 
+    SELECT id, date, displayOrder, category, meeting, item, begintime, endtime, 
+           plantime, actualtime, diffefent, planbegintime, etc
     FROM todos
     WHERE date = ?
+    ORDER BY displayOrder
   `).all(argDate);
   return items;
 });
@@ -128,12 +130,12 @@ ipcMain.handle('getItems', async (event, argDate) => {
 ipcMain.handle('insertItem', async (event, item) => {
   const stmt = db.prepare(`
     INSERT INTO todos (
-      date, category, meeting, item, begintime, endtime, 
+      date, displayOrder, category, meeting, item, begintime, endtime, 
       plantime, actualtime, diffefent, planbegintime, etc
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const info = stmt.run(
-    item.date, item.category, item.meeting, item.item, 
+    item.date, item.displayOrder, item.category, item.meeting, item.item, 
     item.begintime, item.endtime, item.plantime, item.actualtime, 
     item.diffefent, item.planbegintime, item.etc
   );
@@ -144,13 +146,13 @@ ipcMain.handle('insertItem', async (event, item) => {
 ipcMain.handle('updateItem', async (event, item) => {
   const stmt = db.prepare(`
     UPDATE todos SET
-      id = ?, date = ?, category = ?, meeting = ?, item = ?, begintime = ?, 
+      id = ?, date = ?, displayOrder = ?, category = ?, meeting = ?, item = ?, begintime = ?, 
       endtime = ?, plantime = ?, actualtime = ?, diffefent = ?, 
       planbegintime = ?, etc = ?
     WHERE id = ?
   `);
   const info = stmt.run(
-    item.id, item.date, item.category, item.meeting, item.item, 
+    item.id, item.date, item.displayOrder, item.category, item.meeting, item.item, 
     item.begintime, item.endtime, item.plantime, item.actualtime, 
     item.diffefent, item.planbegintime, item.etc, item.id
   );
@@ -183,6 +185,7 @@ ipcMain.handle('deleteAndRecreateTable', async () => {
       CREATE TABLE todos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         date TEXT,
+        displayOrder INTEGER,
         category TEXT,
         meeting TEXT,
         item TEXT,
