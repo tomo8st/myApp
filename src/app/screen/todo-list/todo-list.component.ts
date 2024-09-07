@@ -14,6 +14,7 @@ import { IpcRenderer } from 'electron';
 import { ipcRenderer } from 'electron';
 import { DateAdapter, NativeDateAdapter } from '@angular/material/core';
 import { Injectable } from '@angular/core';
+import { MatSelectModule } from '@angular/material/select';
 
 export interface Item {
   name: string;
@@ -48,7 +49,8 @@ class MyDateAdapter extends NativeDateAdapter {
   selector: 'app-todo-list',
   standalone: true,
   imports: [CommonModule, FormsModule, MatButtonModule, MatToolbarModule, MatIconModule, 
-            MatTableModule, MatFormFieldModule, MatInputModule, MatDatepickerModule ],
+            MatTableModule, MatFormFieldModule, MatInputModule, MatDatepickerModule,
+            MatSelectModule ],
   templateUrl: './todo-list.component.html',
   styleUrl: './todo-list.component.css',
   providers: [
@@ -445,12 +447,10 @@ export class TodoListComponent implements OnInit {
           console.log('更新結果:', result);
         } else {
           // 新しいデータの場合は挿入
-          result = await (window as any).electronAPI.insertItem(editedItem);
-          console.log('挿入結果:', result);
+          result = await (window as any).electronAPI.insertItem(editedItem);          console.log('挿入結果:', result);
           // 新しく挿入されたデータのIDを設定
           if (result && result.id) {
-            editedItem.id = result.id;
-          }
+            editedItem.id = result          }
         }
         console.log('データが正常に保存されました');
         // 保存成功時の処理（例：ユーザーへの通知など）
@@ -515,5 +515,11 @@ export class TodoListComponent implements OnInit {
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
     return `${year}/${month}/${day}`;
+  }
+
+  // もし必要であれば、onInputBlurメソッドを追加
+  onInputBlur() {
+    // 入力フィールドからフォーカスが外れたときの処理
+    // 例: this.saveChanges();
   }
 }

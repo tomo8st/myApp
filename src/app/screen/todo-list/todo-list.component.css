@@ -136,3 +136,61 @@ input.mat-input-element {
   padding: 0;
   margin: 0;
 }
+
+.compact-form-field {
+  .mat-mdc-form-field-flex {
+    height: 30px;  /* 35pxから25pxに変更 */
+  }
+
+  .mat-mdc-form-field-infix {
+    padding: 0em 0;  /* パディングをさらに減らす */
+    min-height: unset;
+  }
+
+  .mat-mdc-select-arrow-wrapper {
+    transform: translateY(-2px);
+  }
+
+  /* フォームフィールドの下線を非表示にする */
+  .mat-mdc-form-field-underline {
+    display: none;
+  }
+}
+
+::ng-deep .compact-select-panel {
+  .mat-mdc-option {
+    height: 30px;  /* 35pxから25pxに変更 */
+    font-size: 14px;
+  }
+}
+
+/* テーブルのセルの高さを調整 */
+.mat-row, .mat-header-row {
+  height: 30px;  /* 行の高さを30pxに設定 */
+}
+
+/* セル内のコンテンツの配置を調整 */
+.mat-cell, .mat-header-cell {
+  display: flex;
+  align-items: center;
+}
+
+/* 入力フィールドのスタイルを調整 */
+.input-cell {
+  width: 100%;
+  height: 25px;
+  line-height: 25px;
+  border: none;
+  background: transparent;
+  padding: 0 4px;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* フォーカス時のスタイル */
+.input-cell:focus {
+  outline: none;
+  background-color: rgba(0, 0, 0, 0.05);
+}
