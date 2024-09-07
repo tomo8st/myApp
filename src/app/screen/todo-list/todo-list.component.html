@@ -128,10 +128,14 @@
       </ng-container>
   
       <ng-container matColumnDef="category">
-        <th mat-header-cell *matHeaderCellDef>カテゴリ</th>
-        <td mat-cell *matCellDef="let element">
+        <th mat-header-cell *matHeaderCellDef class="category-column">カテゴリ</th>
+        <td mat-cell *matCellDef="let element" class="category-column">
           <ng-container *ngIf="editableIndex === dataSource.indexOf(element); else displayCategory">
-            <input [(ngModel)]="element.category" class="input-cell" (blur)="onInputBlur()">
+            <mat-select [(ngModel)]="element.category" class="category-select">
+              <mat-option *ngFor="let category of categories" [value]="category">
+                {{category}}
+              </mat-option>
+            </mat-select>
           </ng-container>
           <ng-template #displayCategory>
             {{element.category}}

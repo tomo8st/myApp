@@ -194,3 +194,43 @@ input.mat-input-element {
   outline: none;
   background-color: rgba(0, 0, 0, 0.05);
 }
+
+.category-select {
+  height: 30px;
+  line-height: 30px;
+  width: 100%;
+  font-size: 14px; /* フォントサイズを14pxに設定 */
+}
+
+.mat-select-value-text {
+  line-height: 30px;
+  font-size: 14px; /* フォントサイズを14pxに設定 */
+}
+
+.category-column {
+  min-width: 150px;
+  width: 150px;
+  font-size: 14px; /* フォントサイズを14pxに設定 */
+}
+
+/* mat-optionのスタイル */
+::ng-deep .mat-option {
+  font-size: 14px; /* フォントサイズを14pxに設定 */
+  height: 30px; /* オプションの高さを調整 */
+  line-height: 30px;
+}
+
+/* mat-select-panelのスタイル */
+::ng-deep .mat-select-panel {
+  font-size: 14px; /* フォントサイズを14pxに設定 */
+}
+
+/* オーバーレイコンテナのスタイル */
+::ng-deep .cdk-overlay-container {
+  font-size: 14px; /* フォントサイズを14pxに設定 */
+}
+
+/* mat-option内のテキストのスタイル */
+::ng-deep .mat-option-text {
+  font-size: 14px; /* フォントサイズを14pxに設定 */
+}

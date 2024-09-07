@@ -85,6 +85,8 @@ export class TodoListComponent implements OnInit {
   private ipc: IpcRenderer | undefined;   // IPC通信インターフェース
   selectedDate: Date | null = null;       // 選択された日付
 
+  categories: string[] = ['カテゴリ1', 'カテゴリ2', 'カテゴリ3', 'カテゴリ4', 'カテゴリ5'];
+
   constructor() {}                             
 
   /**
