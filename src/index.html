@@ -11,5 +11,15 @@
 </head>
 <body class="mat-typography">
   <app-root></app-root>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.electron) {
+        console.log('Electron is available');
+        console.log('Electron object:', window.electron);
+      } else {
+        console.error('Electron is not available');
+      }
+    });
+  </script>
 </body>
 </html>

@@ -8,7 +8,7 @@ import { MAT_DATE_FNS_FORMATS, MatDateFnsModule } from '@angular/material-date-f
 import { provideRouter } from '@angular/router';
 import { routes } from './app/app.routes';
 import { ja } from 'date-fns/locale';
-
+import { CategoryService } from './app/service/category.service';
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -19,6 +19,6 @@ bootstrapApplication(AppComponent, {
     ),
     provideRouter(routes),
     { provide: MAT_DATE_LOCALE, useValue: ja },
-
+    CategoryService
   ]
 }).catch(err => console.error(err));

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,6 +15,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatTabsModule } from '@angular/material/tabs';
+import { CategoryService } from './service/category.service';
 
 @Component({
   selector: 'app-root',
@@ -40,6 +41,12 @@ import { MatTabsModule } from '@angular/material/tabs';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
-  title = 'myApp';
+export class AppComponent implements OnInit {
+  constructor(private categoryService: CategoryService) {}
+
+  ngOnInit() {
+    
+  }
+
+
 }

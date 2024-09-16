@@ -15,6 +15,8 @@ import { ipcRenderer } from 'electron';
 import { DateAdapter, NativeDateAdapter } from '@angular/material/core';
 import { Injectable } from '@angular/core';
 import { MatSelectModule } from '@angular/material/select';
+import { CategoryService } from '../../service/category.service';
+import { catchError, firstValueFrom } from 'rxjs';
 
 export interface Item {
   name: string;
@@ -85,19 +87,25 @@ export class TodoListComponent implements OnInit {
   private ipc: IpcRenderer | undefined;   // IPC通信インターフェース
   selectedDate: Date | null = null;       // 選択された日付
 
-  categories: string[] = ['カテゴリ1', 'カテゴリ2', 'カテゴリ3', 'カテゴリ4', 'カテゴリ5'];
+  categories: any[] = [];
 
-  constructor() {}                             
+  constructor(private categoryService: CategoryService) {}                             
 
   /**
    * 画面初期化イベント
    */
-  ngOnInit() {    
+  async ngOnInit() {    
+    console.log('Electron object:', (window as any).electron);
+
     // 日付を設定する
     this.targetDate = new Date();
 
+    await this.initializeCategoryTable();
+
     // データを読み込む
-    this.db2loadData();
+    await this.loadCategories();
+    await this.db2loadData();
+
   }
   
   // ------------------------------------------------------------
@@ -214,7 +222,7 @@ export class TodoListComponent implements OnInit {
     console.log('保存するデータ:', JSON.stringify(dataToSave));
     
     try {
-      const result = await (window as any).electronAPI.writeArrayToJson(dataToSave);
+      const result = await (window as any).electron.writeArrayToJson(dataToSave);
       console.log('保存結果:', JSON.stringify(result));
       if (result.success) {
         console.log('データが正常に保存されました');
@@ -236,6 +244,23 @@ export class TodoListComponent implements OnInit {
     this.deleteAndRecreateTable();
   }
   
+  /**
+   * カテゴリテーブル作成ボタン押下イベント
+   */
+  public async onClickCreateCategoryTableButton() {
+    try {
+      await firstValueFrom(this.categoryService.createCategoryTable().pipe(
+        catchError((error: any) => {
+          console.error('カテゴリテーブルの作成中にエラーが発生しました:', error);
+          throw error;
+        })
+      ));
+      console.log('カテゴリテーブルが作成されました');
+      await this.insertInitialCategories();
+    } catch (error) {
+      // エラーメッセージをユーザーに表示するロジックをここに追加
+    }
+  }
 
   // ------------------------------------------------------------
   //
@@ -248,7 +273,7 @@ export class TodoListComponent implements OnInit {
    */
   private async deleteAndRecreateTable() {
     try {
-      const result = await (window as any).electronAPI.deleteAndRecreateTable();
+      const result = await (window as any).electron.deleteAndRecreateTable();
       console.log(result.message);
       if (result.success) {
         this.dataSource = [];
@@ -266,7 +291,7 @@ export class TodoListComponent implements OnInit {
    */
   private async loadData() {
     try {
-      const message = await (window as any).electronAPI.testIpc();
+      const message = await (window as any).electron.testIpc();
       console.log('読み込んだデータ:', message);
       this.dataSource = JSON.parse(message.data);
     } catch (error) {
@@ -279,6 +304,34 @@ export class TodoListComponent implements OnInit {
    * データベースからデータを読み込む
    */
   private async db2loadData() {
+    // try {
+    //   const formatedDate = this.targetDate ? this.formatDate(this.targetDate) : null;
+    //   if (formatedDate === null) {
+    //     console.error('無効な日付です');
+    //     return;
+    //   }
+    //   console.log(`formatedDate = ${formatedDate}`);
+
+    //   // if (!(window as any).electron || typeof (window as any).electron.getItems !== 'function') {
+    //   //   throw new Error('.electron.getItems is not available');
+    //   // }
+    //   if (!(window as any).electron || typeof (window as any).electron.invoke !== 'function') {
+    //     throw new Error('electron.invoke is not available');
+    //   }
+
+    //   const message = await (window as any).electron.getItems(formatedDate);
+    //   console.log('読み込んだデータ:', message);
+    //   if (Array.isArray(message)) {
+    //     this.dataSource = await this.convertCategoryIdsToNames(message);
+    //   } else {
+    //     console.error('予期しないデータ形式:', message);
+    //     this.dataSource = [];
+    //   }
+    // } catch (error) {
+    //   console.error('データの読み込み中にエラーが発生しました:', error);
+    //   this.dataSource = [];
+    // }
+
     try {
       const formatedDate = this.targetDate ? this.formatDate(this.targetDate) : null;
       if (formatedDate === null) {
@@ -286,12 +339,24 @@ export class TodoListComponent implements OnInit {
         return;
       }
       console.log(`formatedDate = ${formatedDate}`);
-      const message = await (window as any).electronAPI.getItems(formatedDate);
-      console.log('読み込んだデータ:', message);
-      if (Array.isArray(message)) {
-        this.dataSource = message;
+  
+      console.log('Electron object:', (window as any).electron);
+      console.log('Electron debug:', (window as any).electronDebug);
+  
+      if (!(window as any).electron || typeof (window as any).electron.invoke !== 'function') {
+        throw new Error('electron.invoke is not available');
+      }
+  
+      console.log('Invoking getItems...');
+      const result = await (window as any).electron.invoke('getItems', formatedDate);
+      console.log('getItems result:', result);
+  
+      if (Array.isArray(result)) {
+        // this.dataSource = await this.convertCategoryIdsToNames(result);
+        this.dataSource = result;
+        console.log('this.dataSource:', this.dataSource);
       } else {
-        console.error('予期しないデータ形式:', message);
+        console.error('予期しないデータ形式:', result);
         this.dataSource = [];
       }
     } catch (error) {
@@ -309,7 +374,7 @@ export class TodoListComponent implements OnInit {
       // DBから行を削除
       const itemToDelete = this.dataSource[index];
       try {
-        const result = await (window as any).electronAPI.deleteItem(itemToDelete);
+        const result = await (window as any).electron.deleteItem(itemToDelete);
         console.log('削除結果:', result);
         if (result.changes > 0) {
           console.log('行が正常に削除されました');
@@ -344,7 +409,7 @@ export class TodoListComponent implements OnInit {
       id: null,
       date: formatedDate,
       displayOrder: this.dataSource.length + 1,
-      category: "CAT-1",
+      category: "0",
       meeting: "◯",
       item: "運動-1",
       begintime: "11:20",
@@ -358,7 +423,7 @@ export class TodoListComponent implements OnInit {
     
     try {
       // データベースに新しい行を挿入
-      const result = await (window as any).electronAPI.insertItem(addData);
+      const result = await (window as any).electron.insertItem(addData);
       console.log('挿入結果:', result);
 
       // 挿入されたデータのIDを取得し、addDataに追加
@@ -382,10 +447,10 @@ export class TodoListComponent implements OnInit {
     try {
       for (const item of this.dataSource) {
         const saveItem = {
-          id: item.id, // idフィールドを追加
+          id: item.id,
           date: item.date || '',
           displayOrder: item.displayOrder || '',
-          category: item.category || '',
+          category: this.getCategoryId(item.category),
           meeting: item.meeting || '',
           item: item.item || '',
           begintime: item.begintime || '',
@@ -397,14 +462,17 @@ export class TodoListComponent implements OnInit {
           etc: item.etc || ''
         };
 
+        // カテゴリIDを整数に変換
+        saveItem.category = parseInt(saveItem.category.toString(), 10);
+
         let result;
         if (saveItem.id) {
           // 既存のデータの場合は更新
-          result = await (window as any).electronAPI.updateItem(saveItem);
+          result = await (window as any).electron.updateItem(saveItem);
           console.log('更新結果:', result);
         } else {
           // 新しいデータの場合は挿入
-          result = await (window as any).electronAPI.insertItem(saveItem);
+          result = await (window as any).electron.insertItem(saveItem);
           console.log('挿入結果:', result);
         }
       }
@@ -438,21 +506,23 @@ export class TodoListComponent implements OnInit {
    */
   private async toggleEdit(index: number) {
     if (this.editableIndex === index) {
-      this.editableIndex = null;  // 同じ行をクリックした場合、編集モードを終了
-      // 編集中の行のデータを保存
+      this.editableIndex = null      // 編集中の行のデータを保存
       const editedItem = this.dataSource[index];
       try {
         let result;
         if (editedItem.id) {
+          console.log('更新用データ:', editedItem);
           // 既存のデータの場合は更新
-          result = await (window as any).electronAPI.updateItem(editedItem);
+          result = await (window as any).electron.updateItem(editedItem);
           console.log('更新結果:', result);
         } else {
           // 新しいデータの場合は挿入
-          result = await (window as any).electronAPI.insertItem(editedItem);          console.log('挿入結果:', result);
+          result = await (window as any).electron.insertItem(editedItem);
+          console.log('挿入結果:', result);
           // 新しく挿入されたデータのIDを設定
           if (result && result.id) {
-            editedItem.id = result          }
+            editedItem.id = result.id;
+          }
         }
         console.log('データが正常に保存されました');
         // 保存成功時の処理（例：ユーザーへの通知など）
@@ -501,6 +571,26 @@ export class TodoListComponent implements OnInit {
     this.dataSource = [...this.dataSource];
     this.saveData2db();
   }
+
+  private async initializeCategoryTable() {
+    try {
+      await firstValueFrom(this.categoryService.createCategoryTable());
+      console.log('カテゴリテーブルが作成されました');
+      await this.insertInitialCategories();
+    } catch (error) {
+      console.error('カテゴリテーブルの作成中にエラーが発生しました:', error);
+    }
+  }
+
+  private async insertInitialCategories() {
+    try {
+      await firstValueFrom(this.categoryService.insertInitialCategories());
+      console.log('初期カテゴリが挿入されました');
+    } catch (error) {
+      console.error('初期カテゴリの挿入中にエラーが発生しました:', error);
+    }
+  }
+
   // ------------------------------------------------------------
   //
   // ユーティリティ群
@@ -519,9 +609,41 @@ export class TodoListComponent implements OnInit {
     return `${year}/${month}/${day}`;
   }
 
-  // もし必要であれば、onInputBlurメソッドを追加
-  onInputBlur() {
-    // 入力フィールドからフォーカスが外れたときの処理
-    // 例: this.saveChanges();
+  /**
+   * カテゴリを読み込む
+   */
+  private async loadCategories() {
+    try {
+      this.categories = await firstValueFrom(this.categoryService.getCategories());
+      console.log('カテゴリが読み込まれました:', this.categories);
+    } catch (error) {
+      console.error('カテゴリの読み込み中にエラーが発生しました:', error);
+    }
   }
+
+  /**
+   * カテゴリIDをカテゴリ名に変換する
+   * @param data 
+   * @returns 
+   */
+  private async convertCategoryIdsToNames(data: any[]): Promise<any[]> {
+    return Promise.all(data.map(async (item) => {
+      console.log('item:', item);
+      const categories = this.categoryService.getCategoryName(item.category);
+      console.log('categories:', categories);
+      const categoryName = await firstValueFrom(categories);
+      return { ...item, category: categoryName };
+    }));
+  }
+
+  /**
+   * カテゴリ名をカテゴリIDに変換する
+   * @param categoryName 
+   * @returns 
+   */
+  private getCategoryId(categoryName: string): number {
+    const category = this.categories.find(c => c.name === categoryName);
+    return category ? category.id : -1; // -1 または適切なデフォルト値
+  }
+
 }

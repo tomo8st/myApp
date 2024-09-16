@@ -114,16 +114,41 @@ ipcMain.handle('writeArrayToJson', async (event, data) => {
 });
 
 // データ取得のイベントハンドラ
-ipcMain.handle('getItems', async (event, argDate) => {
-  console.log(`getItems() start. argDate = ${argDate}`);
-  const items = db.prepare(`
-    SELECT id, date, displayOrder, category, meeting, item, begintime, endtime, 
-           plantime, actualtime, diffefent, planbegintime, etc
-    FROM todos
-    WHERE date = ?
-    ORDER BY displayOrder
-  `).all(argDate);
-  return items;
+ipcMain.handle('getItems', async (event, date) => {
+  console.log('getItems called with date:', date);
+  try {
+    const stmt = db.prepare(`
+      SELECT 
+        id, 
+        date, 
+        displayOrder, 
+        CAST(category AS INTEGER) AS category,
+        meeting, 
+        item, 
+        begintime, 
+        endtime, 
+        plantime, 
+        actualtime, 
+        diffefent, 
+        planbegintime, 
+        etc 
+      FROM todos 
+      WHERE date = ?
+    `);
+    const items = stmt.all(date);
+
+    // // デバッグ用：ダミーデータを返す
+    // const items = [
+    //   { id: 1, title: 'テストアイテム1', date: date },
+    //   { id: 2, title: 'テストアイテム2', date: date }
+    // ];
+
+    console.log('取得したアイテム:', items); // デバッグ用
+    return items;
+  } catch (error) {
+    console.error('アイテム取得エラー:', error);
+    throw error;
+  }
 });
 
 // データ挿入のイベントハンドラ
@@ -144,18 +169,25 @@ ipcMain.handle('insertItem', async (event, item) => {
 
 // データ更新のイベントハンドラ
 ipcMain.handle('updateItem', async (event, item) => {
+  console.log('Updating item:', item); // デバッグ用ログ
+  if (!item || typeof item !== 'object') {
+    throw new Error('Invalid item data');
+  }
   const stmt = db.prepare(`
     UPDATE todos SET
-      id = ?, date = ?, displayOrder = ?, category = ?, meeting = ?, item = ?, begintime = ?, 
+      id = ?, date = ?, displayOrder = ?, category = ?, 
+      meeting = ?, item = ?, begintime = ?, 
       endtime = ?, plantime = ?, actualtime = ?, diffefent = ?, 
       planbegintime = ?, etc = ?
     WHERE id = ?
   `);
   const info = stmt.run(
-    item.id, item.date, item.displayOrder, item.category, item.meeting, item.item, 
-    item.begintime, item.endtime, item.plantime, item.actualtime, 
-    item.diffefent, item.planbegintime, item.etc, item.id
+    item.id, item.date, item.displayOrder, item.category, 
+    item.meeting, item.item, item.begintime, 
+    item.endtime, item.plantime, item.actualtime, item.diffefent, 
+    item.planbegintime, item.etc, item.id
   );
+  console.log('更新結果:', info.changes); // デバッグ用
   return { changes: info.changes };
 });
 
@@ -202,6 +234,48 @@ ipcMain.handle('deleteAndRecreateTable', async () => {
     return { success: true, message: 'テーブルが正常に削除され、再作成されました。' };
   } catch (error) {
     console.error('Error deleting and recreating table:', error);
+    return { success: false, message: error.message };
+  }
+});
+
+// カテゴリテーブル作成のイベントハンドラ
+ipcMain.handle('createCategoryTable', async () => {
+  try {
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE
+      )
+    `).run();
+    return { success: true, message: 'カテゴリテーブルが作成されました' };
+  } catch (error) {
+    console.error('カテゴリテーブル作成エラー:', error);
+    return { success: false, message: error.message };
+  }
+});
+
+// 初期カテゴリ挿入のイベントハンドラ
+ipcMain.handle('insertInitialCategories', async () => {
+  try {
+    const stmt = db.prepare(`
+      INSERT OR IGNORE INTO categories (name) VALUES (?)
+    `);
+    const initialCategories = ['仕事', '個人', 'その他'];
+    initialCategories.forEach(category => stmt.run(category));
+    return { success: true, message: '初期カテゴリが挿入されました' };
+  } catch (error) {
+    console.error('初期カテゴリ挿入エラー:', error);
+    return { success: false, message: error.message };
+  }
+});
+
+// カテゴリ取得のイベントハンドラ
+ipcMain.handle('getCategories', async () => {
+  try {
+    const categories = db.prepare('SELECT * FROM categories').all();
+    return { success: true, categories };
+  } catch (error) {
+    console.error('カテゴリ取得エラー:', error);
     return { success: false, message: error.message };
   }
 });
