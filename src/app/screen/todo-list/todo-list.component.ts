@@ -262,6 +262,16 @@ export class TodoListComponent implements OnInit {
     }
   }
 
+  /**
+   * カテゴリ名を取得する
+   * @param categoryId 
+   * @returns 
+   */
+  public getCategoryName(categoryId: number): string {
+    const category = this.categories.find(c => c.id === categoryId);
+    return category ? category.name : '';
+  }
+
   // ------------------------------------------------------------
   //
   // ロジック群
