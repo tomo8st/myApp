@@ -60,6 +60,8 @@
   カテゴリテーブル作成
 </button>
 
+<button (click)="navigateToCategoryManagement()">カテゴリー管理</button>
+
 <div class="table-area">
     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" >
       <ng-container matColumnDef="edit">

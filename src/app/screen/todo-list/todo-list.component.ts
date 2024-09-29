@@ -17,6 +17,7 @@ import { Injectable } from '@angular/core';
 import { MatSelectModule } from '@angular/material/select';
 import { CategoryService } from '../../service/category.service';
 import { catchError, firstValueFrom } from 'rxjs';
+import { Router } from '@angular/router';
 
 export interface Item {
   name: string;
@@ -89,7 +90,7 @@ export class TodoListComponent implements OnInit {
 
   categories: any[] = [];
 
-  constructor(private categoryService: CategoryService) {}                             
+  constructor(private categoryService: CategoryService, private router: Router) {}                             
 
   /**
    * 画面初期化イベント
@@ -270,6 +271,13 @@ export class TodoListComponent implements OnInit {
   public getCategoryName(categoryId: number): string {
     const category = this.categories.find(c => c.id === categoryId);
     return category ? category.name : '';
+  }
+
+  /**
+   * カテゴリーメンテナンス画面へ遷移する
+   */
+  navigateToCategoryManagement() {
+    this.router.navigate(['/category']);
   }
 
   // ------------------------------------------------------------

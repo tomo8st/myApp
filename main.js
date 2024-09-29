@@ -238,6 +238,10 @@ ipcMain.handle('deleteAndRecreateTable', async () => {
   }
 });
 
+// -----------------------------------------------------------
+// カテゴリテーブルのイベントハンドラ
+// -----------------------------------------------------------
+
 // カテゴリテーブル作成のイベントハンドラ
 ipcMain.handle('createCategoryTable', async () => {
   try {
@@ -284,4 +288,45 @@ ipcMain.handle('getCategories', async () => {
 app.on('will-quit', () => {
   // アプリ終了時にDBを閉じる
   if (db) db.close();
+});
+
+// addCategoryイベントハンドラの修正
+ipcMain.handle('addCategory', async (event, name) => {
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO categories (name) VALUES (?)
+    `);
+    const info = stmt.run(name);
+    return { success: true, id: info.lastInsertRowid, name: name };
+  } catch (error) {
+    console.error('カテゴリ追加エラー:', error);
+    return { success: false, message: 'カテゴリの追加中にエラーが発生しました。' };
+  }
+});
+
+// updateCategoryイベントハンドラの修正
+ipcMain.handle('updateCategory', async (event, category) => {
+  console.log('カテゴリを更新中:', category); // デバッグ用ログ
+  if (!category || typeof category !== 'object') {
+    throw new Error('無効なカテゴリデータです');
+  }
+  const stmt = db.prepare(`
+    UPDATE categories SET
+      name = ?
+    WHERE id = ?
+  `);
+  const info = stmt.run(category.name, category.id);
+  console.log('更新結果:', info.changes); // デバッグ用
+  return { changes: info.changes };
+});
+
+// deleteCategoryイベントハンドラの修正
+ipcMain.handle('deleteCategory', async (event, categoryId) => {
+  console.log('カテゴリを削除中:', categoryId); // デバッグ用ログ
+  const stmt = db.prepare(`
+    DELETE FROM categories WHERE id = ?
+  `);
+  const info = stmt.run(categoryId);
+  console.log('削除結果:', info.changes); // デバッグ用
+  return { success: true, changes: info.changes };
 });

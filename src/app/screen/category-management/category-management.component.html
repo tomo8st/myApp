@@ -1,0 +1,43 @@
+<h2>カテゴリ管理</h2>
+
+<form (ngSubmit)="addCategory()">
+  <mat-form-field>
+    <mat-label>新しいカテゴリ名</mat-label>
+    <input matInput [(ngModel)]="newCategoryName" name="newCategoryName" required>
+  </mat-form-field>
+  <button mat-raised-button color="primary" type="submit">追加</button>
+</form>
+
+<button mat-raised-button color="primary" (click)="navigateToTodoList()">ToDoリスト画面へ</button>
+
+<mat-table [dataSource]="categories">
+  <ng-container matColumnDef="id">
+    <mat-header-cell *matHeaderCellDef>ID</mat-header-cell>
+    <mat-cell *matCellDef="let category">{{category.id}}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="name">
+    <mat-header-cell *matHeaderCellDef>名前</mat-header-cell>
+    <mat-cell *matCellDef="let category">
+      <mat-form-field *ngIf="editingCategory === category; else displayName">
+        <input matInput [(ngModel)]="category.name">
+      </mat-form-field>
+      <ng-template #displayName>{{category.name}}</ng-template>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="actions">
+    <mat-header-cell *matHeaderCellDef>操作</mat-header-cell>
+    <mat-cell *matCellDef="let category">
+      <button mat-icon-button (click)="editCategory(category)">
+        <mat-icon>edit</mat-icon>
+      </button>
+      <button mat-icon-button (click)="deleteCategory(category)">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="['id', 'name', 'actions']"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: ['id', 'name', 'actions']"></mat-row>
+</mat-table>

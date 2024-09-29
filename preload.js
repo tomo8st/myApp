@@ -28,7 +28,11 @@ contextBridge.exposeInMainWorld('electron', {
       'deleteAndRecreateTable',
       'testIpc',
       'writeArrayToJson',
-      'insertInitialCategories'
+      'insertInitialCategories',
+      // 新しいチャンネルを追加
+      'addCategory',
+      'updateCategory',
+      'deleteCategory'
     ];
     if (validChannels.includes(channel)) {
       return ipcRenderer.invoke(channel, data);

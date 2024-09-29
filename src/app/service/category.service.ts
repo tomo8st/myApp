@@ -108,7 +108,7 @@ export class CategoryService {
         // idを整数に変換
         const intId = Math.round(id);
         console.log('整数に変換したカテゴリID:', intId); // デバッグ用
-        const category = categories.find(c => c.id === intId);
+        const category = categories.find(c => c.id === intId);  
         const result = category ? category.name : '不明なカテゴリ';
         console.log('見つかったカテゴリ名:', result); // デバッグ用
         return result;
@@ -123,5 +123,34 @@ export class CategoryService {
    */  
   getItems(date: string): Observable<any[]> {
     return this.invokeElectron('getItems', date);
+  }
+
+  /**
+   * カテゴリを追加する
+   * @param name カテゴリ名
+   * @returns カテゴリ
+   */
+  addCategory(name: string): Observable<any> {
+    return this.invokeElectron('addCategory', name);
+  }
+
+  /**
+   * カテゴリを更新する
+   * @param id カテゴリID
+   * @param name カテゴリ名
+   * @returns カテゴリ
+   */
+
+  updateCategory(id: number, name: string): Observable<any> {
+    return this.invokeElectron('updateCategory', { id, name });
+  }
+
+  /**
+   * カテゴリを削除する
+   * @param id カテゴリID
+   * @returns カテゴリ
+   */
+  deleteCategory(id: number): Observable<any> {
+    return this.invokeElectron('deleteCategory', id);
   }
 }
