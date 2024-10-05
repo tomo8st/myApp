@@ -6,8 +6,9 @@ const { contextBridge, ipcRenderer } = require('electron')
 //
 contextBridge.exposeInMainWorld('electron', {
   // getItems: (item) => ipcRenderer.invoke('getItems', item),
-  // insertItem: (item) => ipcRenderer.invoke('insertItem', item),
+  insertItem: (item) => ipcRenderer.invoke('insertItem', item),
   updateItem: (item) => ipcRenderer.invoke('updateItem', item),
+  getAllItems: () => ipcRenderer.invoke('getAllItems'),
   // deleteItem: (item) => ipcRenderer.invoke('deleteItem', item),
   // deleteAndRecreateTable: () => ipcRenderer.invoke('deleteAndRecreateTable'),
   // testIpc: () => ipcRenderer.invoke('testIpc'),
@@ -32,7 +33,8 @@ contextBridge.exposeInMainWorld('electron', {
       // 新しいチャンネルを追加
       'addCategory',
       'updateCategory',
-      'deleteCategory'
+      'deleteCategory',
+      'getAllItems' 
     ];
     if (validChannels.includes(channel)) {
       return ipcRenderer.invoke(channel, data);

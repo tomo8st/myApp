@@ -4,9 +4,10 @@ const path = require('node:path');
 const url = require('url');
 const Database = require('better-sqlite3');
 
-let win;
-let db;
+let win;  // ウインドウ
+let db;  // データベース
 
+// ウインドウを作成する関数
 function createWindow() {
 
   // ウインドウの作成
@@ -30,6 +31,7 @@ function createWindow() {
     slashes: true
   });
 
+  // ウインドウにURLを読み込む
   win.loadURL(startUrl);
 
   // デバッグ画面表示
@@ -136,12 +138,6 @@ ipcMain.handle('getItems', async (event, date) => {
       WHERE date = ?
     `);
     const items = stmt.all(date);
-
-    // // デバッグ用：ダミーデータを返す
-    // const items = [
-    //   { id: 1, title: 'テストアイテム1', date: date },
-    //   { id: 2, title: 'テストアイテム2', date: date }
-    // ];
 
     console.log('取得したアイテム:', items); // デバッグ用
     return items;
@@ -329,4 +325,16 @@ ipcMain.handle('deleteCategory', async (event, categoryId) => {
   const info = stmt.run(categoryId);
   console.log('削除結果:', info.changes); // デバッグ用
   return { success: true, changes: info.changes };
+});
+
+// 全データ取得のイベントハンドラ
+ipcMain.handle('getAllItems', async () => {
+  try {
+    const stmt = db.prepare('SELECT * FROM todos');
+    const items = stmt.all();
+    return items;
+  } catch (error) {
+    console.error('データの取得中にエラーが発生しました:', error);
+    throw error;
+  }
 });

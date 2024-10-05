@@ -23,10 +23,16 @@ export class CategoryManagementComponent implements OnInit {
 
   constructor(private categoryService: CategoryService, private router: Router) { }
 
+  /**
+   * 初期化
+   */
   ngOnInit() {
     this.loadCategories();
   }
 
+  /**
+   * カテゴリを読み込む
+   */
   loadCategories() {
     this.categoryService.getCategories().subscribe(
       (data) => {
@@ -38,6 +44,9 @@ export class CategoryManagementComponent implements OnInit {
     );
   }
 
+  /**
+   * カテゴリを追加する
+   */
   addCategory() {
     if (this.newCategoryName.trim()) {
       this.categoryService.addCategory(this.newCategoryName).subscribe(
@@ -52,6 +61,10 @@ export class CategoryManagementComponent implements OnInit {
     }
   }
 
+  /**
+   * カテゴリを編集する
+   * @param category カテゴリ
+   */
   editCategory(category: any) {
     if (this.editingCategory === category) {
       this.categoryService.updateCategory(category.id, category.name).subscribe(
@@ -68,6 +81,10 @@ export class CategoryManagementComponent implements OnInit {
     }
   }
 
+  /**
+   * カテゴリを削除する
+   * @param category カテゴリ
+   */
   deleteCategory(category: any) {
     if (confirm(`カテゴリ "${category.name}" を削除してもよろしいですか？`)) {
       this.categoryService.deleteCategory(category.id).subscribe(

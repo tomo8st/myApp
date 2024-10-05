@@ -62,6 +62,8 @@
 
 <button (click)="navigateToCategoryManagement()">カテゴリー管理</button>
 
+<button mat-raised-button color="primary" (click)="onClickCsvExportButton()">CSVエクスポート</button>
+
 <div class="table-area">
     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" >
       <ng-container matColumnDef="edit">

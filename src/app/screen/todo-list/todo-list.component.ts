@@ -18,6 +18,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { CategoryService } from '../../service/category.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
+import { saveAs } from 'file-saver';
 
 export interface Item {
   name: string;
@@ -82,6 +83,21 @@ export class TodoListComponent implements OnInit {
     'etc',                                // 備考
     'delete'                              // 削除ボタン列を追加
   ];
+  exportColumns: string[] = [
+    'id',                                 // id 
+    'date',                               // 日付
+    'displayOrder',                       // 表示順
+    'category',                           // カテゴリ
+    'meeting',                            // MTG
+    'item',                               // ToDo項目
+    'begintime',                          // 開始時刻
+    'endtime',                            // 終了時刻
+    'plantime',                           // 計画時間
+    'actualtime',                         // 実績時間
+    'diffefent',                          // 差異
+    'planbegintime',                      // 計画時刻
+    'etc',                                // 備考    
+  ];
   defaultDate: any;                       // デフォルトの日付
   targetDate: Date | null = null;         // 日付フィルターの日付    
   editableIndex: number | null = null;    // 編集可能な行のインデックス
@@ -138,6 +154,9 @@ export class TodoListComponent implements OnInit {
    */  
   public onClickDbSearchButton() {
     this.db2loadData();
+    this.updatePlanBeginTimes();
+    this.updateBeginTimes();
+    this.calculateActualTimeAndDifference(); // この行を追加
   }
   /**
    * クリアボタン押下イベント
@@ -195,7 +214,7 @@ export class TodoListComponent implements OnInit {
     console.log('選択された日付:', event.value);
     this.targetDate = event.value;
     
-    // 日付フィルターを適用する
+    // 日付フィルタを適用する
     this.db2loadData();
   }
 
@@ -239,7 +258,7 @@ export class TodoListComponent implements OnInit {
   }
 
   /**
-   * テーブル削除&再作成ボタン押下イベント
+   * テーブル削除&再作成ボタン押下イト
    */
   public async onClickTableDeleteAndRecreateButton() {
     this.deleteAndRecreateTable();
@@ -278,6 +297,13 @@ export class TodoListComponent implements OnInit {
    */
   navigateToCategoryManagement() {
     this.router.navigate(['/category']);
+  }
+
+  /**
+   * CSVエクスポートボタン押下イベント
+   */
+  public onClickCsvExportButton() {
+    this.exportToCsv();
   }
 
   // ------------------------------------------------------------
@@ -322,34 +348,6 @@ export class TodoListComponent implements OnInit {
    * データベースからデータを読み込む
    */
   private async db2loadData() {
-    // try {
-    //   const formatedDate = this.targetDate ? this.formatDate(this.targetDate) : null;
-    //   if (formatedDate === null) {
-    //     console.error('無効な日付です');
-    //     return;
-    //   }
-    //   console.log(`formatedDate = ${formatedDate}`);
-
-    //   // if (!(window as any).electron || typeof (window as any).electron.getItems !== 'function') {
-    //   //   throw new Error('.electron.getItems is not available');
-    //   // }
-    //   if (!(window as any).electron || typeof (window as any).electron.invoke !== 'function') {
-    //     throw new Error('electron.invoke is not available');
-    //   }
-
-    //   const message = await (window as any).electron.getItems(formatedDate);
-    //   console.log('読み込んだデータ:', message);
-    //   if (Array.isArray(message)) {
-    //     this.dataSource = await this.convertCategoryIdsToNames(message);
-    //   } else {
-    //     console.error('予期しないデータ形式:', message);
-    //     this.dataSource = [];
-    //   }
-    // } catch (error) {
-    //   console.error('データの読み込み中にエラーが発生しました:', error);
-    //   this.dataSource = [];
-    // }
-
     try {
       const formatedDate = this.targetDate ? this.formatDate(this.targetDate) : null;
       if (formatedDate === null) {
@@ -373,6 +371,9 @@ export class TodoListComponent implements OnInit {
         // this.dataSource = await this.convertCategoryIdsToNames(result);
         this.dataSource = result;
         console.log('this.dataSource:', this.dataSource);
+        this.updatePlanBeginTimes();
+        this.calculateActualTimeAndDifference();
+        this.updateBeginTimes(); // この行を追加
       } else {
         console.error('予期しないデータ形式:', result);
         this.dataSource = [];
@@ -384,8 +385,8 @@ export class TodoListComponent implements OnInit {
   }
     
   /**
-   * 指定されたインデクスの行を削除する
-   * @param index 削除する行のインデッス
+   * 指定されたインデクスの行を削す
+   * @param index 削除する行のインデックス
    */
   private async deleteRow(index: number) {
     if (index >= 0 && index < this.dataSource.length) {
@@ -395,7 +396,7 @@ export class TodoListComponent implements OnInit {
         const result = await (window as any).electron.deleteItem(itemToDelete);
         console.log('削除結果:', result);
         if (result.changes > 0) {
-          console.log('行が正常に削除されました');
+          console.log('行が正常に削除���れました');
         } else {
           console.warn('削除対象の行が見つかりませんでした');
         }
@@ -524,7 +525,7 @@ export class TodoListComponent implements OnInit {
    */
   private async toggleEdit(index: number) {
     if (this.editableIndex === index) {
-      this.editableIndex = null      // 編集中の行のデータを保存
+      this.editableIndex = null;
       const editedItem = this.dataSource[index];
       try {
         let result;
@@ -543,13 +544,15 @@ export class TodoListComponent implements OnInit {
           }
         }
         console.log('データが正常に保存されました');
+        this.calculateActualTimeAndDifference(); // この行を変更
+        this.updateBeginTimes();
         // 保存成功時の処理（例：ユーザーへの通知など）
       } catch (error) {
         console.error('データの保存中にエラーが発生しました:', error);
         // エラー処理（例：ユーザーへの通知）
       }
     } else {
-      this.editableIndex = index;  // 他の行をクリックした場合、編集モードを変更
+      this.editableIndex = index;
     }
   }
 
@@ -590,6 +593,9 @@ export class TodoListComponent implements OnInit {
     this.saveData2db();
   }
 
+  /**
+   * カテゴリテーブルを初期化する
+   */
   private async initializeCategoryTable() {
     try {
       await firstValueFrom(this.categoryService.createCategoryTable());
@@ -600,6 +606,9 @@ export class TodoListComponent implements OnInit {
     }
   }
 
+  /**
+   * 初期カテゴリを挿入する
+   */
   private async insertInitialCategories() {
     try {
       await firstValueFrom(this.categoryService.insertInitialCategories());
@@ -609,6 +618,129 @@ export class TodoListComponent implements OnInit {
     }
   }
 
+  /**
+   * 計画時刻を計算して更新する
+   */
+  private updatePlanBeginTimes() {
+    if (this.dataSource && this.dataSource.length > 0) {
+      let currentTime = this.parseTime(this.dataSource[0].begintime);
+      
+      this.dataSource.forEach((task: any, index: number) => {
+        if (index === 0) {
+          task.planbegintime = task.begintime;
+        } else {
+          task.planbegintime = this.formatTime(currentTime);
+        }
+        
+        const planTime = this.parseTime(task.plantime);
+        currentTime = this.addMinutes(currentTime, planTime);
+      });
+
+      // データソースを更新してビューを再描画
+      this.dataSource = [...this.dataSource];
+    }
+  }
+
+  /**
+   * 時間文字列をDate型に変換する
+   */
+  private parseTime(timeString: string): Date {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const time = new Date();
+    time.setHours(hours, minutes, 0, 0);
+    return time;
+  }
+
+  /**
+   * Date型を時間文字列に変換する
+   */
+  /**
+   * Date型を時間文字列に変換する
+   */
+  private formatTime(date: Date): string {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    return `${hours}:${minutes.toString().padStart(2, '0')}`;
+  }
+
+  /**
+   * 指定された分数を時間に加算する
+   */
+  private addMinutes(date: Date, timeToAdd: Date): Date {
+    const result = new Date(date);
+    result.setMinutes(result.getMinutes() + timeToAdd.getHours() * 60 + timeToAdd.getMinutes());
+    return result;
+  }
+  
+  /**
+   * データをCSV形式でエクスポートする
+   */
+  private async exportToCsv() {
+    try {
+      // todoテーブルのすべてのデータを取得
+      const allData = await (window as any).electron.getAllItems();
+
+      if (!allData || allData.length === 0) {
+        console.warn('エクスポートするデータがありません。');
+        return;
+      }
+      // 表示列名を取得
+      const headers = this.exportColumns.map(column => this.getColumnDisplayName(column));
+      // CSVデータを作成
+      const csvContent = [
+        headers.join(','),
+        ...allData.map((row: any) => 
+          this.exportColumns.map(column => this.escapeCSV(row[column])).join(',')
+        )
+      ].join('\n');
+      // CSVデータをファイルに保存
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const filename = `todo_list_all_${this.formatDate(new Date())}.csv`;
+      saveAs(blob, filename);
+
+      console.log('CSVエクスポートが完了しました。');
+    } catch (error) {
+      console.error('CSVエクスポート中にエラーが発生しました:', error);
+      // エラー処理（例：ユーザーへの通知）
+    }
+  }
+
+  /**
+   * 列名を表示用の名前に変換する
+   */
+  private getColumnDisplayName(column: string): string {
+    const displayNames: { [key: string]: string } = {
+      // 'edit': '編集',
+      // 'moveRow': '移動',
+      'id': 'ID',
+      'date': '日付',
+      'displayOrder': '表示順',
+      'category': 'カテゴリ',
+      'meeting': 'MTG',
+      'item': 'ToDo項目',
+      'begintime': '開始時刻',
+      'endtime': '終了時刻',
+      'plantime': '計画時間',
+      'actualtime': '実績時間',
+      'diffefent': '差異',
+      'planbegintime': '計画時刻',
+      'etc': '備考',
+      // 'delete': '削除'
+    };
+    return displayNames[column] || column;
+  }
+
+  /**
+   * CSV用にデータをエスケープする
+   */
+  private escapeCSV(data: any): string {
+    if (data == null) return '';
+    if (typeof data === 'string') {
+      return `"${data.replace(/"/g, '""')}"`;
+    }
+    return data.toString();
+  }
+  
   // ------------------------------------------------------------
   //
   // ユーティリティ群
@@ -655,13 +787,72 @@ export class TodoListComponent implements OnInit {
   }
 
   /**
-   * カテゴリ名をカテゴリIDに変換する
+   * カテ��リ名をカテゴリIDに変換する
    * @param categoryName 
    * @returns 
    */
   private getCategoryId(categoryName: string): number {
     const category = this.categories.find(c => c.name === categoryName);
     return category ? category.id : -1; // -1 または適切なデフォルト値
+  }
+
+  /**
+   * 実績時間を計算し、差異を算出する
+   */
+  private calculateActualTimeAndDifference() {
+    this.dataSource.forEach((task: any) => {
+      if (task.begintime && task.endtime) {
+        const beginTime = this.parseTime(task.begintime);
+        const endTime = this.parseTime(task.endtime);
+        const diffMinutes = (endTime.getTime() - beginTime.getTime()) / (1000 * 60);
+        const hours = Math.floor(diffMinutes / 60);
+        const minutes = Math.floor(diffMinutes % 60);
+        task.actualtime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+
+        // 計画時間と実績時間の差異を計算
+        const planTime = this.parseTime(task.plantime);
+        const actualTime = this.parseTime(task.actualtime);
+        
+        // 実績時間から計画時間を減算
+        const diffMilliseconds = actualTime.getTime() - planTime.getTime();
+        const isNegative = diffMilliseconds < 0;
+        
+        // 絶対値を取得
+        const absDiffTime = new Date(Math.abs(diffMilliseconds));
+        const diffHours = absDiffTime.getUTCHours();
+        const diffMins = absDiffTime.getUTCMinutes();
+        
+        // マイナスの場合は先頭に「-」を付ける
+        const sign = isNegative ? '-' : '';
+        task.diffefent = `${sign}${diffHours.toString().padStart(2, '0')}:${diffMins.toString().padStart(2, '0')}`;
+      } else {
+        task.actualtime = '';
+        task.diffefent = '';
+      }
+    });
+    this.dataSource = [...this.dataSource];
+  }
+
+  /**
+   * 前の行の終了時刻を次の行の開始時刻に設定する
+   */
+  private updateBeginTimes() {
+    if (this.dataSource && this.dataSource.length > 1) {
+      for (let i = 1; i < this.dataSource.length; i++) {
+        const previousTask = this.dataSource[i - 1];
+        const currentTask = this.dataSource[i];
+        
+        if (!previousTask.endtime || previousTask.endtime.trim() === '') {
+          // 前のタスクの終了時刻が空白の場合、現在のタスクの開始時刻も空白にする
+          currentTask.begintime = '';
+        } else {
+          currentTask.begintime = previousTask.endtime;
+        }
+      }
+      
+      // データソースを更新してビューを再描画
+      this.dataSource = [...this.dataSource];
+    }
   }
 
 }
