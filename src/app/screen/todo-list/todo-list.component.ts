@@ -19,6 +19,12 @@ import { CategoryService } from '../../service/category.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
 import { saveAs } from 'file-saver';
+import { MatDialog } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
+import { CsvImportDialogComponent } from './csv-import-dialog.component';
+import { ConfirmDialogComponent } from './confirm-dialog.component';
+// import { ElectronService } from 'ngx-electron';
+
 
 export interface Item {
   name: string;
@@ -54,7 +60,7 @@ class MyDateAdapter extends NativeDateAdapter {
   standalone: true,
   imports: [CommonModule, FormsModule, MatButtonModule, MatToolbarModule, MatIconModule, 
             MatTableModule, MatFormFieldModule, MatInputModule, MatDatepickerModule,
-            MatSelectModule ],
+            MatSelectModule, MatDialogModule],
   templateUrl: './todo-list.component.html',
   styleUrl: './todo-list.component.css',
   providers: [
@@ -87,7 +93,7 @@ export class TodoListComponent implements OnInit {
     'id',                                 // id 
     'date',                               // 日付
     'displayOrder',                       // 表示順
-    'category',                           // カテゴリ
+    'category',                           // カゴリ
     'meeting',                            // MTG
     'item',                               // ToDo項目
     'begintime',                          // 開始時刻
@@ -106,7 +112,12 @@ export class TodoListComponent implements OnInit {
 
   categories: any[] = [];
 
-  constructor(private categoryService: CategoryService, private router: Router) {}                             
+  constructor(
+    private categoryService: CategoryService, 
+    private router: Router, 
+    private dialog: MatDialog, 
+    // private electronService: ElectronService
+  ) {}
 
   /**
    * 画面初期化イベント
@@ -210,7 +221,7 @@ export class TodoListComponent implements OnInit {
    * @param event 
    */
   public onDateChange(event: MatDatepickerInputEvent<Date>) {
-    // 日付が変更されたときの処理をここに記述
+    // 日付が変更されたときの処理をこに記述
     console.log('選択された日付:', event.value);
     this.targetDate = event.value;
     
@@ -237,7 +248,7 @@ export class TodoListComponent implements OnInit {
    * データ保存のIPCイベントを呼び出す
    */
   public async onClickSaveButton() {
-    console.log('保存ボタンがクリックされました');
+    console.log('保存ボタンがクリックされまし');
     const dataToSave = JSON.parse(JSON.stringify(this.dataSource));
     console.log('保存するデータ:', JSON.stringify(dataToSave));
     
@@ -304,6 +315,33 @@ export class TodoListComponent implements OnInit {
    */
   public onClickCsvExportButton() {
     this.exportToCsv();
+  }
+
+  /**
+   * CSVインポートボタン押下イベント
+   */
+  public onClickCsvImportButton() {
+    const dialogRef = this.dialog.open(CsvImportDialogComponent);
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.importCsvData(result);
+      }
+    });
+  }
+
+  onClickDeleteAllTodosButton() {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: '確認',
+        message: '本当にすべてのToDoを削除しますか？この操作は取り消せません。'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.deleteAllTodos();
+      }
+    });
   }
 
   // ------------------------------------------------------------
@@ -396,7 +434,7 @@ export class TodoListComponent implements OnInit {
         const result = await (window as any).electron.deleteItem(itemToDelete);
         console.log('削除結果:', result);
         if (result.changes > 0) {
-          console.log('行が正常に削除���れました');
+          console.log('行が正常に削除れました');
         } else {
           console.warn('削除対象の行が見つかりませんでした');
         }
@@ -481,8 +519,8 @@ export class TodoListComponent implements OnInit {
           etc: item.etc || ''
         };
 
-        // カテゴリIDを整数に変換
-        saveItem.category = parseInt(saveItem.category.toString(), 10);
+        // カテゴリIDを整数に変換（未定義の場合は0を使用）
+        saveItem.category = parseInt(saveItem.category?.toString() ?? '0', 10);
 
         let result;
         if (saveItem.id) {
@@ -652,7 +690,7 @@ export class TodoListComponent implements OnInit {
   }
 
   /**
-   * Date型を時間文字列に変換する
+   * Date型を時間文列に変換する
    */
   /**
    * Date型を時間文字列に変換する
@@ -693,7 +731,7 @@ export class TodoListComponent implements OnInit {
           this.exportColumns.map(column => this.escapeCSV(row[column])).join(',')
         )
       ].join('\n');
-      // CSVデータをファイルに保存
+      // CSVデータファイルに保存
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const filename = `todo_list_all_${this.formatDate(new Date())}.csv`;
       saveAs(blob, filename);
@@ -741,6 +779,43 @@ export class TodoListComponent implements OnInit {
     return data.toString();
   }
   
+  /**
+   * CSVデータをインポートする
+   */
+  private async importCsvData(csvData: string) {
+    try {
+      const result = await (window as any).electron.importCsvData(csvData);
+      console.log('CSVインポート結果:', result);
+      if (result.success) {
+        console.log('CSVデータが正常にインポートされました');
+        // データを再読み込み
+        await this.db2loadData();
+      } else {
+        console.error('CSVデータのインポートに失敗しました:', result.message);
+      }
+    } catch (error) {
+      console.error('CSVインポート中にエラーが発生しました:', error);
+    }
+  }
+
+  private async deleteAllTodos() {
+    try {
+      const result = await (window as any).electron.invoke('deleteAllTodos');
+      console.log('全ToDo削除結果:', result);
+      if (result.success) {
+        console.log('全てのToDoが正常に削除されました');
+        // データソースをクリア
+        this.dataSource = [];
+        // ビューを更新
+        this.dataSource = [...this.dataSource];
+      } else {
+        console.error('全ToDoの削除に失敗しました:', result.message);
+      }
+    } catch (error) {
+      console.error('全ToDo削除中にエラーが発生しました:', error);
+    }
+  }
+
   // ------------------------------------------------------------
   //
   // ユーティリティ群
@@ -787,13 +862,13 @@ export class TodoListComponent implements OnInit {
   }
 
   /**
-   * カテ��リ名をカテゴリIDに変換する
+   * カテゴリ名をカテゴリIDに変換する
    * @param categoryName 
    * @returns 
    */
-  private getCategoryId(categoryName: string): number {
+  private getCategoryId(categoryName: string): number | undefined {
     const category = this.categories.find(c => c.name === categoryName);
-    return category ? category.id : -1; // -1 または適切なデフォルト値
+    return category ? category.id : undefined;
   }
 
   /**

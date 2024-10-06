@@ -62,7 +62,18 @@
 
 <button (click)="navigateToCategoryManagement()">カテゴリー管理</button>
 
-<button mat-raised-button color="primary" (click)="onClickCsvExportButton()">CSVエクスポート</button>
+<button mat-raised-button color="primary" (click)="onClickCsvImportButton()">
+  CSVインポート
+</button>
+
+<button mat-raised-button color="primary" (click)="onClickCsvExportButton()">
+  CSVエクスポート
+</button>
+
+<!-- 新しいボタンを追加 -->
+<button mat-raised-button color="warn" (click)="onClickDeleteAllTodosButton()">
+  全ToDo削除
+</button>
 
 <div class="table-area">
     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" >

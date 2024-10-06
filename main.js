@@ -3,6 +3,8 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('node:path');
 const url = require('url');
 const Database = require('better-sqlite3');
+const csv = require('csv-parser');
+const stream = require('stream');
 
 let win;  // ウインドウ
 let db;  // データベース
@@ -234,6 +236,16 @@ ipcMain.handle('deleteAndRecreateTable', async () => {
   }
 });
 
+ipcMain.handle('deleteAllTodos', async () => {
+  try {
+    await db.prepare('DELETE FROM todos').run();
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting all todos:', error);
+    throw error;
+  }
+});
+
 // -----------------------------------------------------------
 // カテゴリテーブルのイベントハンドラ
 // -----------------------------------------------------------
@@ -247,14 +259,14 @@ ipcMain.handle('createCategoryTable', async () => {
         name TEXT NOT NULL UNIQUE
       )
     `).run();
-    return { success: true, message: 'カテゴリテーブルが作成されました' };
+    return { success: true, message: '���テゴリテーブルが作成されました' };
   } catch (error) {
     console.error('カテゴリテーブル作成エラー:', error);
     return { success: false, message: error.message };
   }
 });
 
-// 初期カテゴリ挿入のイベントハンドラ
+// 初期テゴリ挿入のイベ��トハンドラ
 ipcMain.handle('insertInitialCategories', async () => {
   try {
     const stmt = db.prepare(`
@@ -336,5 +348,81 @@ ipcMain.handle('getAllItems', async () => {
   } catch (error) {
     console.error('データの取得中にエラーが発生しました:', error);
     throw error;
+  }
+});
+
+// CSVデータをインポートするイベントハンドラ
+// /Users/tomo/Library/Application Support/my-app
+ipcMain.handle('importCsvData', async (event, csvData) => {
+  console.log('CSVデータのインポートを開始します');
+  
+  try {
+    const results = [];
+    const bufferStream = new stream.PassThrough();
+    bufferStream.end(Buffer.from(csvData));
+
+    let isFirstRow = true; // 1行目をスキップするためのフラグ
+
+    await new Promise((resolve, reject) => {
+      bufferStream
+        .pipe(csv())
+        .on('data', (data) => {
+          if (isFirstRow) {
+            isFirstRow = false; // 1行目をスキップ
+          } else {
+            results.push(data);
+          }
+        })
+        .on('end', () => {
+          console.log('CSVの解析が完了しました');
+          resolve();
+        })
+        .on('error', (error) => {
+          console.error('CSVの解析中にエラーが発生しました:', error);
+          reject(error);
+        });
+    });
+
+    const stmt = db.prepare(`
+      INSERT INTO todos (
+        date, displayOrder, category, meeting, item, begintime, endtime, 
+        plantime, actualtime, diffefent, planbegintime, etc
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    console.log('インポートされたデータの内容:');
+    results.forEach((item, index) => {
+      console.log(`アイテム ${index + 1}:`, JSON.stringify(item, null, 2));
+    });
+
+    // トランザクションを明示的に開始
+    const insertMany = db.transaction((items) => {
+      for (const item of items) {
+        try {
+          stmt.run(
+            item.date, item.displayOrder, item.category, item.meeting, item.item, 
+            item.begintime, item.endtime, item.plantime, item.actualtime, 
+            item.diffefent, item.planbegintime, item.etc
+          );
+        } catch (error) {
+          console.error('レコード挿入中にエラーが発生しました:', error);
+          console.error('問題のあるデータ:', item);
+          throw error; // トランザクションをロールバックするためにエラーを再スロー
+        }
+      }
+    });
+
+    // トランザクションを実行
+    insertMany(results);
+
+    // 挿入されたレコード数を確認
+    const count = db.prepare('SELECT COUNT(*) as count FROM todos').get();
+    console.log(`現在のtodosテーブルのレコード数: ${count.count}`);
+
+    console.log(`${results.length}件のデータをインポートしました`);
+    return { success: true, message: `${results.length}件のデータをインポートしました` };
+  } catch (error) {
+    console.error('CSVデータのインポート中にエラーが発生しました:', error);
+    return { success: false, message: error.message };
   }
 });

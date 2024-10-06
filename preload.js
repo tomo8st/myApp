@@ -9,6 +9,8 @@ contextBridge.exposeInMainWorld('electron', {
   insertItem: (item) => ipcRenderer.invoke('insertItem', item),
   updateItem: (item) => ipcRenderer.invoke('updateItem', item),
   getAllItems: () => ipcRenderer.invoke('getAllItems'),
+  importCsvData: (csvData) => ipcRenderer.invoke('importCsvData', csvData),
+  deleteAllTodos: () => ipcRenderer.invoke('deleteAllTodos'),
   // deleteItem: (item) => ipcRenderer.invoke('deleteItem', item),
   // deleteAndRecreateTable: () => ipcRenderer.invoke('deleteAndRecreateTable'),
   // testIpc: () => ipcRenderer.invoke('testIpc'),
@@ -23,6 +25,7 @@ contextBridge.exposeInMainWorld('electron', {
       'createCategoryTable',
       'getCategories',
       'getItems', 
+      'importCsvData',
       'insertItem', 
       // 'updateItem',
       'deleteItem',
@@ -34,7 +37,8 @@ contextBridge.exposeInMainWorld('electron', {
       'addCategory',
       'updateCategory',
       'deleteCategory',
-      'getAllItems' 
+      'getAllItems',
+      'deleteAllTodos'
     ];
     if (validChannels.includes(channel)) {
       return ipcRenderer.invoke(channel, data);
