@@ -110,13 +110,18 @@ export class TodoListComponent implements OnInit {
   private ipc: IpcRenderer | undefined;   // IPC通信インターフェース
   selectedDate: Date | null = null;       // 選択された日付
 
-  categories: any[] = [];
+  categories: any[] = [];                 // カテゴリ 
 
+  /**
+   * コンストラクタ
+   * @param categoryService カテゴリサービス
+   * @param router ルーター
+   * @param dialog ダイアログ
+   */
   constructor(
     private categoryService: CategoryService, 
     private router: Router, 
     private dialog: MatDialog, 
-    // private electronService: ElectronService
   ) {}
 
   /**
@@ -231,7 +236,7 @@ export class TodoListComponent implements OnInit {
 
   /**
    * 削除ボタン押下イベント
-   * @param index 
+   * @param index 削除する行のインデックス
    */
   public onClickDeleteButton(index: number) {
     this.deleteRow(index);
@@ -239,7 +244,7 @@ export class TodoListComponent implements OnInit {
 
   /**
    * 編集ボタン押下イベント
-   * @param index 
+   * @param index 編集する行のインデックス
    */
   public onClickEditButton(index: number) {
     this.toggleEdit(index);
@@ -329,14 +334,18 @@ export class TodoListComponent implements OnInit {
     });
   }
 
-  onClickDeleteAllTodosButton() {
+  /**
+   * 全ToDo削除ボタン押下イベント
+   */
+  public onClickDeleteAllTodosButton() {
+    // 確認ダイアログを表示
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: '確認',
         message: '本当にすべてのToDoを削除しますか？この操作は取り消せません。'
       }
     });
-
+    // ダイアログが閉じた後の処理
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.deleteAllTodos();
@@ -373,6 +382,7 @@ export class TodoListComponent implements OnInit {
    */
   private async loadData() {
     try {
+      // ファイルからデータを読み込む
       const message = await (window as any).electron.testIpc();
       console.log('読み込んだデータ:', message);
       this.dataSource = JSON.parse(message.data);
@@ -387,6 +397,7 @@ export class TodoListComponent implements OnInit {
    */
   private async db2loadData() {
     try {
+      // 日付をフォーマットする
       const formatedDate = this.targetDate ? this.formatDate(this.targetDate) : null;
       if (formatedDate === null) {
         console.error('無効な日付です');
@@ -402,9 +413,11 @@ export class TodoListComponent implements OnInit {
       }
   
       console.log('Invoking getItems...');
+
+      // データベースからデータを読み込む
       const result = await (window as any).electron.invoke('getItems', formatedDate);
       console.log('getItems result:', result);
-  
+      // データをデータソースに設定
       if (Array.isArray(result)) {
         // this.dataSource = await this.convertCategoryIdsToNames(result);
         this.dataSource = result;
@@ -418,6 +431,7 @@ export class TodoListComponent implements OnInit {
       }
     } catch (error) {
       console.error('データの読み込み中にエラーが発生しました:', error);
+      // エラー処理（例：ユーザーへの通知）
       this.dataSource = [];
     }
   }
@@ -456,12 +470,14 @@ export class TodoListComponent implements OnInit {
    * @returns 
    */
   private async addRow() {
+    // 日付をフォーマットする
     const formatedDate = this.targetDate ? this.formatDate(this.targetDate) : null;
     console.log(`formatedDate = ${formatedDate}`);
     if (formatedDate === null) {
       console.error('無効な日付です');
       return;
     }
+    // 新しい行を追加する
     const addData = {
       id: null,
       date: formatedDate,
@@ -502,6 +518,7 @@ export class TodoListComponent implements OnInit {
    */
   private async saveData2db() {
     try {
+      // データベースにデータを保存する
       for (const item of this.dataSource) {
         const saveItem = {
           id: item.id,
@@ -562,6 +579,7 @@ export class TodoListComponent implements OnInit {
    * @param index 
    */
   private async toggleEdit(index: number) {
+    // 編集中の行が同じ場合は編集を終了
     if (this.editableIndex === index) {
       this.editableIndex = null;
       const editedItem = this.dataSource[index];
@@ -590,6 +608,7 @@ export class TodoListComponent implements OnInit {
         // エラー処理（例：ユーザーへの通知）
       }
     } else {
+      // 編集モードに移行
       this.editableIndex = index;
     }
   }
@@ -690,9 +709,6 @@ export class TodoListComponent implements OnInit {
   }
 
   /**
-   * Date型を時間文列に変換する
-   */
-  /**
    * Date型を時間文字列に変換する
    */
   private formatTime(date: Date): string {
@@ -718,6 +734,7 @@ export class TodoListComponent implements OnInit {
       // todoテーブルのすべてのデータを取得
       const allData = await (window as any).electron.getAllItems();
 
+      // エクスポートするデータがない場合は処理を終了
       if (!allData || allData.length === 0) {
         console.warn('エクスポートするデータがありません。');
         return;
@@ -747,6 +764,7 @@ export class TodoListComponent implements OnInit {
    * 列名を表示用の名前に変換する
    */
   private getColumnDisplayName(column: string): string {
+    // 表示名を設定
     const displayNames: { [key: string]: string } = {
       // 'edit': '編集',
       // 'moveRow': '移動',
@@ -772,10 +790,13 @@ export class TodoListComponent implements OnInit {
    * CSV用にデータをエスケープする
    */
   private escapeCSV(data: any): string {
+    // データがnullの場合は空文字を返す
     if (data == null) return '';
+    // データが文字列の場合はエスケープする
     if (typeof data === 'string') {
       return `"${data.replace(/"/g, '""')}"`;
     }
+    // データが文字列でない場合はそのまま返す
     return data.toString();
   }
   
@@ -784,8 +805,10 @@ export class TodoListComponent implements OnInit {
    */
   private async importCsvData(csvData: string) {
     try {
+      // CSVデータをインポート
       const result = await (window as any).electron.importCsvData(csvData);
       console.log('CSVインポート結果:', result);
+      // インポートが成功した場合はデータを再読み込み
       if (result.success) {
         console.log('CSVデータが正常にインポートされました');
         // データを再読み込み
@@ -798,10 +821,15 @@ export class TodoListComponent implements OnInit {
     }
   }
 
+  /**
+   * 全ToDoを削除する
+   */
   private async deleteAllTodos() {
     try {
+      // 全ToDoを削除
       const result = await (window as any).electron.invoke('deleteAllTodos');
       console.log('全ToDo削除結果:', result);
+      // 削除が成功した場合はデータを再読み込み
       if (result.success) {
         console.log('全てのToDoが正常に削除されました');
         // データソースをクリア
@@ -824,8 +852,8 @@ export class TodoListComponent implements OnInit {
 
   /**
    * 日付を文字列(YYYY/MM/DD)に変換する
-   * @param date 
-   * @returns 
+   * @param date 日付
+   * @returns 日付文字列
    */
   private formatDate(date: Date): string {
     const year = date.getFullYear();
@@ -848,8 +876,8 @@ export class TodoListComponent implements OnInit {
 
   /**
    * カテゴリIDをカテゴリ名に変換する
-   * @param data 
-   * @returns 
+   * @param data データ
+   * @returns カテゴリ名
    */
   private async convertCategoryIdsToNames(data: any[]): Promise<any[]> {
     return Promise.all(data.map(async (item) => {
@@ -863,8 +891,8 @@ export class TodoListComponent implements OnInit {
 
   /**
    * カテゴリ名をカテゴリIDに変換する
-   * @param categoryName 
-   * @returns 
+   * @param categoryName カテゴリ名
+   * @returns カテゴリID
    */
   private getCategoryId(categoryName: string): number | undefined {
     const category = this.categories.find(c => c.name === categoryName);
@@ -875,10 +903,14 @@ export class TodoListComponent implements OnInit {
    * 実績時間を計算し、差異を算出する
    */
   private calculateActualTimeAndDifference() {
+    // データソースの各タスクに対して実績時間と差異を計算
     this.dataSource.forEach((task: any) => {
+      // 開始時刻と終了時刻がある場合は計算
       if (task.begintime && task.endtime) {
+        // 開始時刻と終了時刻を解析
         const beginTime = this.parseTime(task.begintime);
         const endTime = this.parseTime(task.endtime);
+        // 実績時間を計算
         const diffMinutes = (endTime.getTime() - beginTime.getTime()) / (1000 * 60);
         const hours = Math.floor(diffMinutes / 60);
         const minutes = Math.floor(diffMinutes % 60);
@@ -901,10 +933,12 @@ export class TodoListComponent implements OnInit {
         const sign = isNegative ? '-' : '';
         task.diffefent = `${sign}${diffHours.toString().padStart(2, '0')}:${diffMins.toString().padStart(2, '0')}`;
       } else {
+        // 開始時刻と終了時刻がない場合は空白にする
         task.actualtime = '';
         task.diffefent = '';
       }
     });
+    // データソースを更新してビューを再描画
     this.dataSource = [...this.dataSource];
   }
 
@@ -912,13 +946,15 @@ export class TodoListComponent implements OnInit {
    * 前の行の終了時刻を次の行の開始時刻に設定する
    */
   private updateBeginTimes() {
+    // データソースが存在し、長さが1以上の場合は処理を続行
     if (this.dataSource && this.dataSource.length > 1) {
+      // データソースの各タスクに対して開始時刻を更新
       for (let i = 1; i < this.dataSource.length; i++) {
         const previousTask = this.dataSource[i - 1];
         const currentTask = this.dataSource[i];
         
+        // 前のタスクの終了時刻が空白の場合、現在のタスクの開始時刻も空白にする
         if (!previousTask.endtime || previousTask.endtime.trim() === '') {
-          // 前のタスクの終了時刻が空白の場合、現在のタスクの開始時刻も空白にする
           currentTask.begintime = '';
         } else {
           currentTask.begintime = previousTask.endtime;

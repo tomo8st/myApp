@@ -236,6 +236,7 @@ ipcMain.handle('deleteAndRecreateTable', async () => {
   }
 });
 
+// 全データ削除のイベントハンドラ
 ipcMain.handle('deleteAllTodos', async () => {
   try {
     await db.prepare('DELETE FROM todos').run();

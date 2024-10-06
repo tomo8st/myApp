@@ -9,6 +9,9 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router'; // Routerをインポート
 
+//
+// カテゴリ管理画面
+//
 @Component({
   selector: 'app-category-management',
   standalone: true,
