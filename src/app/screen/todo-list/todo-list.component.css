@@ -234,3 +234,20 @@ input.mat-input-element {
 ::ng-deep .mat-option-text {
   font-size: 14px; /* フォントサイズを14pxに設定 */
 }
+
+/* テーブルのセルに縦の罫線を追加 */
+.mat-mdc-table .mat-mdc-cell,
+.mat-mdc-table .mat-mdc-header-cell {
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/* 最後のセルの右側の罫線を削除 */
+.mat-mdc-table .mat-mdc-cell:last-child,
+.mat-mdc-table .mat-mdc-header-cell:last-child {
+  border-right: none;
+}
+
+/* テーブル全体に枠線を追加 */
+.mat-mdc-table {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
