@@ -251,3 +251,8 @@ input.mat-input-element {
 .mat-mdc-table {
   border: 1px solid rgba(0, 0, 0, 0.12);
 }
+
+.selected-cell {
+  outline: 2px solid green;
+  outline-offset: -2px;
+}

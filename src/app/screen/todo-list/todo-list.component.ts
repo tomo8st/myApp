@@ -112,6 +112,8 @@ export class TodoListComponent implements OnInit {
 
   categories: any[] = [];                 // カテゴリ 
 
+  selectedCell: { rowIndex: number | null, columnName: string | null } = { rowIndex: null, columnName: null };
+
   /**
    * コンストラクタ
    * @param categoryService カテゴリサービス
@@ -351,6 +353,11 @@ export class TodoListComponent implements OnInit {
         this.deleteAllTodos();
       }
     });
+  }
+
+  onCellClick(event: MouseEvent, rowIndex: number, columnName: string) {
+    event.stopPropagation();
+    this.selectedCell = { rowIndex, columnName };
   }
 
   // ------------------------------------------------------------
