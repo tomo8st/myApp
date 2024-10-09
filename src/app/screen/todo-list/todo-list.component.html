@@ -99,57 +99,60 @@
       </ng-container>
 
       <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef
-            class="table-header"> 
-            id
-        </th>
+        <th mat-header-cell *matHeaderCellDef class="table-header">id</th>
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
             (click)="onCellClick($event, i, 'id')"
+            (dblclick)="onCellDoubleClick($event, i, 'id')"
             [class.selected-cell]="selectedCell.rowIndex === i && selectedCell.columnName === 'id'">
-            <ng-container *ngIf="editableIndex === i; else readOnly">
-              <input matInput [(ngModel)]="element.id" class="input-cell" />                
-            </ng-container>
-            <ng-template #readOnly>
-              <div class="cell-content">{{element.id}}</div>
-            </ng-template>              
+          <ng-container *ngIf="isCellEditable(i, 'id'); else readOnly">
+            <input matInput [(ngModel)]="element.id" class="input-cell" 
+                   (blur)="onCellEditComplete(element.id, i, 'id')"
+                   [attr.data-row]="i"
+                   [attr.data-column]="'id'" />
+          </ng-container>
+          <ng-template #readOnly>
+            <div class="cell-content">{{element.id}}</div>
+          </ng-template>
         </td>
       </ng-container>
       
       <ng-container matColumnDef="displayOrder">
-        <th mat-header-cell *matHeaderCellDef
-            class="table-header"> 
-            表示順
-        </th>
+        <th mat-header-cell *matHeaderCellDef class="table-header">表示順</th>
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
             (click)="onCellClick($event, i, 'displayOrder')"
+            (dblclick)="onCellDoubleClick($event, i, 'displayOrder')"
             [class.selected-cell]="selectedCell.rowIndex === i && selectedCell.columnName === 'displayOrder'">
-            <ng-container *ngIf="editableIndex === i; else readOnly">
-              <input matInput [(ngModel)]="element.displayOrder" class="input-cell" />                
-            </ng-container>
-            <ng-template #readOnly>
-              <div class="cell-content">{{element.displayOrder}}</div>
-            </ng-template>              
+          <ng-container *ngIf="isCellEditable(i, 'displayOrder'); else readOnly">
+            <input matInput [(ngModel)]="element.displayOrder" class="input-cell"
+                   (blur)="onCellEditComplete(element.displayOrder, i, 'displayOrder')"
+                   [attr.data-row]="i"
+                   [attr.data-column]="'displayOrder'" />
+          </ng-container>
+          <ng-template #readOnly>
+            <div class="cell-content">{{element.displayOrder}}</div>
+          </ng-template>
         </td>
       </ng-container>
 
       <ng-container matColumnDef="date">
-        <th mat-header-cell *matHeaderCellDef
-              class="table-header"> 
-              日付
-          </th>
-          <td mat-cell *matCellDef="let element; let i = index"
-              class="table-cell"
-              (click)="onCellClick($event, i, 'date')"
-              [class.selected-cell]="selectedCell.rowIndex === i && selectedCell.columnName === 'date'">
-              <ng-container *ngIf="editableIndex === i; else readOnly">
-                <input matInput [(ngModel)]="element.date" class="input-cell" />                
-              </ng-container>
-              <ng-template #readOnly>
-                <div class="cell-content">{{element.date}}</div>
-              </ng-template>              
-          </td>
+        <th mat-header-cell *matHeaderCellDef class="table-header">日付</th>
+        <td mat-cell *matCellDef="let element; let i = index"
+            class="table-cell"
+            (click)="onCellClick($event, i, 'date')"
+            (dblclick)="onCellDoubleClick($event, i, 'date')"
+            [class.selected-cell]="selectedCell.rowIndex === i && selectedCell.columnName === 'date'">
+          <ng-container *ngIf="isCellEditable(i, 'date'); else readOnly">
+            <input matInput [(ngModel)]="element.date" class="input-cell"
+                   (blur)="onCellEditComplete(element.date, i, 'date')"
+                   [attr.data-row]="i"
+                   [attr.data-column]="'date'" />
+          </ng-container>
+          <ng-template #readOnly>
+            <div class="cell-content">{{element.date}}</div>
+          </ng-template>
+        </td>
       </ng-container>
   
       <ng-container matColumnDef="category">
@@ -157,16 +160,19 @@
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
             (click)="onCellClick($event, i, 'category')"
+            (dblclick)="onCellDoubleClick($event, i, 'category')"
             [class.selected-cell]="selectedCell.rowIndex === i && selectedCell.columnName === 'category'">
-          <ng-container *ngIf="editableIndex === i; else readOnlyCategory">
-            <mat-select [(ngModel)]="element.category">
+          <ng-container *ngIf="isCellEditable(i, 'category'); else readOnlyCategory">
+            <mat-select [(ngModel)]="element.category" (selectionChange)="onCellEditComplete(element.category, i, 'category')"
+                        [attr.data-row]="i"
+                        [attr.data-column]="'category'">
               <mat-option *ngFor="let category of categories" [value]="category.id">
                 {{category.name}}
               </mat-option>
             </mat-select>
           </ng-container>
           <ng-template #readOnlyCategory>
-            {{getCategoryName(element.category)}}
+            <div class="cell-content">{{getCategoryName(element.category)}}</div>
           </ng-template>
         </td>
       </ng-container>
@@ -179,31 +185,36 @@
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell mat-column-mtg"
             (click)="onCellClick($event, i, 'meeting')"
+            (dblclick)="onCellDoubleClick($event, i, 'meeting')"
             [class.selected-cell]="selectedCell.rowIndex === i && selectedCell.columnName === 'meeting'">
-              <ng-container *ngIf="editableIndex === i; else readOnly">
-                <input matInput [(ngModel)]="element.meeting" class="input-cell" />                
-              </ng-container>
-              <ng-template #readOnly>
-                <div class="cell-content">{{element.meeting}}</div>
-              </ng-template>
+          <ng-container *ngIf="isCellEditable(i, 'meeting'); else readOnly">
+            <input matInput [(ngModel)]="element.meeting" class="input-cell"
+                   (blur)="onCellEditComplete(element.meeting, i, 'meeting')"
+                   [attr.data-row]="i"
+                   [attr.data-column]="'meeting'" />
+          </ng-container>
+          <ng-template #readOnly>
+            <div class="cell-content">{{element.meeting}}</div>
+          </ng-template>
         </td>
       </ng-container>
   
       <ng-container matColumnDef="item">
-        <th mat-header-cell *matHeaderCellDef
-            class="table-header">
-            ToDo項目
-        </th>
+        <th mat-header-cell *matHeaderCellDef class="table-header">ToDo項目</th>
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
             (click)="onCellClick($event, i, 'item')"
+            (dblclick)="onCellDoubleClick($event, i, 'item')"
             [class.selected-cell]="selectedCell.rowIndex === i && selectedCell.columnName === 'item'">
-              <ng-container *ngIf="editableIndex === i; else readOnly">
-                <input matInput [(ngModel)]="element.item" class="input-cell" />                
-              </ng-container>
-              <ng-template #readOnly>
-                <div class="cell-content">{{element.item}}</div>
-              </ng-template>
+          <ng-container *ngIf="isCellEditable(i, 'item'); else readOnly">
+            <input matInput [(ngModel)]="element.item" class="input-cell"
+                   (blur)="onCellEditComplete(element.item, i, 'item')"
+                   [attr.data-row]="i"
+                   [attr.data-column]="'item'" />
+          </ng-container>
+          <ng-template #readOnly>
+            <div class="cell-content">{{element.item}}</div>
+          </ng-template>
         </td>
       </ng-container>
       
@@ -215,13 +226,17 @@
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell qright mat-column-begintime"
             (click)="onCellClick($event, i, 'begintime')"
+            (dblclick)="onCellDoubleClick($event, i, 'begintime')"
             [class.selected-cell]="selectedCell.rowIndex === i && selectedCell.columnName === 'begintime'">
-              <ng-container *ngIf="editableIndex === i; else readOnly">
-                <input matInput [(ngModel)]="element.begintime" class="input-cell" />                
-              </ng-container>
-              <ng-template #readOnly>
-                <div class="cell-content">{{element.begintime}}</div>
-              </ng-template>
+          <ng-container *ngIf="isCellEditable(i, 'begintime'); else readOnly">
+            <input matInput [(ngModel)]="element.begintime" class="input-cell"
+                   (blur)="onCellEditComplete(element.begintime, i, 'begintime')"
+                   [attr.data-row]="i"
+                   [attr.data-column]="'begintime'" />
+          </ng-container>
+          <ng-template #readOnly>
+            <div class="cell-content">{{element.begintime}}</div>
+          </ng-template>
         </td>
       </ng-container>
     
@@ -233,13 +248,17 @@
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell mat-column-endtime"
             (click)="onCellClick($event, i, 'endtime')"
+            (dblclick)="onCellDoubleClick($event, i, 'endtime')"
             [class.selected-cell]="selectedCell.rowIndex === i && selectedCell.columnName === 'endtime'">
-              <ng-container *ngIf="editableIndex === i; else readOnly">
-                <input matInput [(ngModel)]="element.endtime" class="input-cell" />                
-              </ng-container>
-              <ng-template #readOnly>
-                <div class="cell-content">{{element.endtime}}</div>
-              </ng-template>
+          <ng-container *ngIf="isCellEditable(i, 'endtime'); else readOnly">
+            <input matInput [(ngModel)]="element.endtime" class="input-cell"
+                   (blur)="onCellEditComplete(element.endtime, i, 'endtime')"
+                   [attr.data-row]="i"
+                   [attr.data-column]="'endtime'" />
+          </ng-container>
+          <ng-template #readOnly>
+            <div class="cell-content">{{element.endtime}}</div>
+          </ng-template>
         </td>
       </ng-container>
   
@@ -251,13 +270,17 @@
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell mat-column-plantime"
             (click)="onCellClick($event, i, 'plantime')"
+            (dblclick)="onCellDoubleClick($event, i, 'plantime')"
             [class.selected-cell]="selectedCell.rowIndex === i && selectedCell.columnName === 'plantime'">
-              <ng-container *ngIf="editableIndex === i; else readOnly">
-                <input matInput [(ngModel)]="element.plantime" class="input-cell" />                
-              </ng-container>
-              <ng-template #readOnly>
-                <div class="cell-content">{{element.plantime}}</div>
-              </ng-template>
+          <ng-container *ngIf="isCellEditable(i, 'plantime'); else readOnly">
+            <input matInput [(ngModel)]="element.plantime" class="input-cell"
+                   (blur)="onCellEditComplete(element.plantime, i, 'plantime')"
+                   [attr.data-row]="i"
+                   [attr.data-column]="'plantime'" />
+          </ng-container>
+          <ng-template #readOnly>
+            <div class="cell-content">{{element.plantime}}</div>
+          </ng-template>
         </td>
       </ng-container>
   
@@ -269,13 +292,17 @@
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell mat-column-actualtime"
             (click)="onCellClick($event, i, 'actualtime')"
+            (dblclick)="onCellDoubleClick($event, i, 'actualtime')"
             [class.selected-cell]="selectedCell.rowIndex === i && selectedCell.columnName === 'actualtime'">
-              <ng-container *ngIf="editableIndex === i; else readOnly">
-                <input matInput [(ngModel)]="element.actualtime" class="input-cell" />                
-              </ng-container>
-              <ng-template #readOnly>
-                <div class="cell-content">{{element.actualtime}}</div>
-              </ng-template>
+          <ng-container *ngIf="isCellEditable(i, 'actualtime'); else readOnly">
+            <input matInput [(ngModel)]="element.actualtime" class="input-cell"
+                   (blur)="onCellEditComplete(element.actualtime, i, 'actualtime')"
+                   [attr.data-row]="i"
+                   [attr.data-column]="'actualtime'" />
+          </ng-container>
+          <ng-template #readOnly>
+            <div class="cell-content">{{element.actualtime}}</div>
+          </ng-template>
         </td>
       </ng-container>
   
@@ -287,13 +314,17 @@
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell mat-column-diffefent"
             (click)="onCellClick($event, i, 'diffefent')"
+            (dblclick)="onCellDoubleClick($event, i, 'diffefent')"
             [class.selected-cell]="selectedCell.rowIndex === i && selectedCell.columnName === 'diffefent'">
-              <ng-container *ngIf="editableIndex === i; else readOnly">
-                <input matInput [(ngModel)]="element.diffefent" class="input-cell" />                
-              </ng-container>
-              <ng-template #readOnly>
-                <div class="cell-content">{{element.diffefent}}</div>
-              </ng-template>
+          <ng-container *ngIf="isCellEditable(i, 'diffefent'); else readOnly">
+            <input matInput [(ngModel)]="element.diffefent" class="input-cell"
+                   (blur)="onCellEditComplete(element.diffefent, i, 'diffefent')"
+                   [attr.data-row]="i"
+                   [attr.data-column]="'diffefent'" />
+          </ng-container>
+          <ng-template #readOnly>
+            <div class="cell-content">{{element.diffefent}}</div>
+          </ng-template>
         </td>
       </ng-container>
   
@@ -305,13 +336,17 @@
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell mat-column-planbegintime"
             (click)="onCellClick($event, i, 'planbegintime')"
+            (dblclick)="onCellDoubleClick($event, i, 'planbegintime')"
             [class.selected-cell]="selectedCell.rowIndex === i && selectedCell.columnName === 'planbegintime'">
-              <ng-container *ngIf="editableIndex === i; else readOnly">
-                <input matInput [(ngModel)]="element.planbegintime" class="input-cell" />                
-              </ng-container>
-              <ng-template #readOnly>
-                <div class="cell-content">{{element.planbegintime}}</div>
-              </ng-template>
+          <ng-container *ngIf="isCellEditable(i, 'planbegintime'); else readOnly">
+            <input matInput [(ngModel)]="element.planbegintime" class="input-cell"
+                   (blur)="onCellEditComplete(element.planbegintime, i, 'planbegintime')"
+                   [attr.data-row]="i"
+                   [attr.data-column]="'planbegintime'" />
+          </ng-container>
+          <ng-template #readOnly>
+            <div class="cell-content">{{element.planbegintime}}</div>
+          </ng-template>
         </td>
       </ng-container>
 
@@ -323,13 +358,17 @@
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
             (click)="onCellClick($event, i, 'etc')"
+            (dblclick)="onCellDoubleClick($event, i, 'etc')"
             [class.selected-cell]="selectedCell.rowIndex === i && selectedCell.columnName === 'etc'">
-              <ng-container *ngIf="editableIndex === i; else readOnly">
-                <input matInput [(ngModel)]="element.etc" class="input-cell" />                
-              </ng-container>
-              <ng-template #readOnly>
-                <div class="cell-content">{{element.etc}}</div>
-              </ng-template>
+          <ng-container *ngIf="isCellEditable(i, 'etc'); else readOnly">
+            <input matInput [(ngModel)]="element.etc" class="input-cell"
+                   (blur)="onCellEditComplete(element.etc, i, 'etc')"
+                   [attr.data-row]="i"
+                   [attr.data-column]="'etc'" />
+          </ng-container>
+          <ng-template #readOnly>
+            <div class="cell-content">{{element.etc}}</div>
+          </ng-template>
         </td>
       </ng-container>
 

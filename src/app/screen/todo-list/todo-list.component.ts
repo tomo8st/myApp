@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 // import { MatTableModule } from '@angular/material/table';
@@ -23,6 +23,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
 import { CsvImportDialogComponent } from './csv-import-dialog.component';
 import { ConfirmDialogComponent } from './confirm-dialog.component';
+import { MatSelectChange } from '@angular/material/select';
 // import { ElectronService } from 'ngx-electron';
 
 
@@ -107,12 +108,14 @@ export class TodoListComponent implements OnInit {
   defaultDate: any;                       // デフォルトの日付
   targetDate: Date | null = null;         // 日付フィルターの日付    
   editableIndex: number | null = null;    // 編集可能な行のインデックス
-  private ipc: IpcRenderer | undefined;   // IPC通信インターフェース
+  private ipc: IpcRenderer | undefined;   // IPC通信インターフース
   selectedDate: Date | null = null;       // 選択された日付
 
   categories: any[] = [];                 // カテゴリ 
 
   selectedCell: { rowIndex: number | null, columnName: string | null } = { rowIndex: null, columnName: null };
+
+  editingCell: { rowIndex: number | null, columnName: string | null } = { rowIndex: null, columnName: null };
 
   /**
    * コンストラクタ
@@ -123,7 +126,8 @@ export class TodoListComponent implements OnInit {
   constructor(
     private categoryService: CategoryService, 
     private router: Router, 
-    private dialog: MatDialog, 
+    private dialog: MatDialog,  
+    private changeDetectorRef: ChangeDetectorRef
   ) {}
 
   /**
@@ -152,7 +156,7 @@ export class TodoListComponent implements OnInit {
   /**
    * データ表示ボタン押下イベント
    * 
-   *   ボタンクリックで ipc の指定イベント呼び出し
+   *   ボタンクリックで ipc の指定イベト呼び出し
    */
   public onClickIpcTestBtn() {
     // myapiイベントを引数を渡しながら呼び出す
@@ -355,9 +359,102 @@ export class TodoListComponent implements OnInit {
     });
   }
 
-  onCellClick(event: MouseEvent, rowIndex: number, columnName: string) {
+  /**
+   * セルクリックイベント
+   * @param event 
+   * @param rowIndex 
+   * @param columnName 
+   */
+  public onCellClick(event: MouseEvent, rowIndex: number, columnName: string) {
+    // セルクリック時のイベントを停止
     event.stopPropagation();
+    // 選択されたセルを設定
     this.selectedCell = { rowIndex, columnName };
+  }
+
+  /**
+   * セルダブルクリックイベント
+   * @param event 
+   * @param rowIndex 
+   * @param columnName 
+   */
+  /**
+   * セルダブルクリックイベント
+   * @param event 
+   * @param rowIndex 
+   * @param columnName 
+   */
+  public onCellDoubleClick(event: MouseEvent, rowIndex: number, columnName: string) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.editingCell = { rowIndex, columnName };
+    
+    // 非同期で入力フィールドにフォーカスを当てる
+    setTimeout(() => this.focusInput(rowIndex, columnName), 0);
+  }
+
+  /**
+   * 入力フィールドにフォーカスを当て、カーソルを最後尾に移動する
+   * @param rowIndex 
+   * @param columnName 
+   */
+  private focusInput(rowIndex: number, columnName: string) {
+    const inputElement = document.querySelector(`input[data-row="${rowIndex}"][data-column="${columnName}"]`) as HTMLInputElement;
+    if (inputElement) {
+      inputElement.focus();
+      inputElement.setSelectionRange(inputElement.value.length, inputElement.value.length);
+    }
+  }
+
+  /**
+   * セル編集完了イベント
+   * @param event 
+   */
+  public onCellEditComplete(newValue: any, rowIndex: number, columnName: string) {
+    const updatedData = {
+      ...this.dataSource[rowIndex],
+      [columnName]: newValue
+    };
+
+    if (rowIndex !== null && columnName !== null) {
+      this.dataSource[rowIndex] = updatedData;
+      this.editingCell = { rowIndex: null, columnName: null };
+      this.saveData2db();
+      this.calculateActualTimeAndDifference();
+      this.updateBeginTimes();
+      
+      // 変更検出を強制的に実行
+      this.changeDetectorRef.detectChanges();
+    }
+    if (rowIndex !== null && columnName !== null) {
+      console.log('dataSource:', this.dataSource);
+      console.log('rowIndex:', rowIndex);
+      console.log('columnName:', columnName);
+      
+      if (this.dataSource[rowIndex]) {
+        const updatedValue = this.dataSource[rowIndex][columnName];
+        console.log('updatedValue:', updatedValue);
+        
+        if (updatedValue !== undefined) {
+          console.log('Updated category:', updatedValue);
+        } else {
+          console.log('カテゴリの値が未定義です');
+          console.log('該当行のデータ:', this.dataSource[rowIndex]);
+        }
+      } else {
+        console.log('指定された行が存在しません');
+      }
+    }
+  }
+
+  /**
+   * セルが編集可能かどうかを判定する
+   * @param rowIndex 
+   * @param columnName 
+   * @returns 
+   */
+  public isCellEditable(rowIndex: number, columnName: string): boolean {
+    return this.editingCell.rowIndex === rowIndex && this.editingCell.columnName === columnName;
   }
 
   // ------------------------------------------------------------
@@ -531,7 +628,8 @@ export class TodoListComponent implements OnInit {
           id: item.id,
           date: item.date || '',
           displayOrder: item.displayOrder || '',
-          category: this.getCategoryId(item.category),
+          // category: this.getCategoryId(item.category),
+          category: item.category || '',
           meeting: item.meeting || '',
           item: item.item || '',
           begintime: item.begintime || '',
@@ -544,7 +642,10 @@ export class TodoListComponent implements OnInit {
         };
 
         // カテゴリIDを整数に変換（未定義の場合は0を使用）
-        saveItem.category = parseInt(saveItem.category?.toString() ?? '0', 10);
+        //saveItem.category = parseInt(saveItem.category?.toString() ?? '0', 10);
+
+        console.log('item.category:', item.category);
+        console.log('saveItem.category:', saveItem.category);
 
         let result;
         if (saveItem.id) {
@@ -800,7 +901,7 @@ export class TodoListComponent implements OnInit {
     // データがnullの場合は空文字を返す
     if (data == null) return '';
     // データが文字列の場合はエスケープする
-    if (typeof data === 'string') {
+        if (typeof data === 'string') {
       return `"${data.replace(/"/g, '""')}"`;
     }
     // データが文字列でない場合はそのまま返す
@@ -910,7 +1011,7 @@ export class TodoListComponent implements OnInit {
    * 実績時間を計算し、差異を算出する
    */
   private calculateActualTimeAndDifference() {
-    // データソースの各タスクに対して実績時間と差異を計算
+    // データソースの各タスク対して実績時間と差異を計算
     this.dataSource.forEach((task: any) => {
       // 開始時刻と終了時刻がある場合は計算
       if (task.begintime && task.endtime) {
