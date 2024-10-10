@@ -73,9 +73,9 @@ export class TodoListComponent implements OnInit {
   username = 'Test Name';                 // ユーザー名
   dataSource: any;                        // データソース
   displayedColumns: string[] =[
-    'edit',                               // 編集ボタン列を追加
+    // 'edit',                               // 編集ボタン列を追加 -> セルダブルクリックで編集するためコメントアウト
     'moveRow',                            // 行の移動ボタン列を追加
-    'id',                                 // id 
+    // 'id',                                 // id -> 使用上は不要なので非表示化
     'date',                               // 日付
     'displayOrder',                       // 表示順
     'category',                           // カテゴリ
