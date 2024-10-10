@@ -256,3 +256,41 @@ input.mat-input-element {
   outline: 2px solid green;
   outline-offset: -2px;
 }
+
+/* 表示順列の幅を2文字分に設定 */
+.mat-column-displayOrder {
+  width: 2ch;
+  max-width: 2ch;
+  min-width: 2ch;
+}
+
+/* MTG列の幅を3文字分に設定 */
+.mat-column-meeting {
+  width: 3ch;
+  max-width: 3ch;
+  min-width: 3ch;
+}
+
+/* 削除ボタン列の幅を3文字分に設定 */   
+.mat-column-delete {
+  width: 3ch;
+  max-width: 4ch;
+  min-width: 4ch;
+}
+
+/* セル内のコンテンツを中央揃えにする */
+.mat-column-displayOrder,
+.mat-column-meeting,
+.mat-column-delete {
+  text-align: center;
+  justify-content: center;
+}
+
+/* オーバーフローしたコンテンツを省略する */
+.mat-column-displayOrder,
+.mat-column-meeting,
+.mat-column-delete {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
