@@ -402,3 +402,8 @@ input.mat-input-element {
   font-size: 11px;
   color: #666;
 }
+
+/* カテゴリ選択フィールドのスタイル */
+.category-select {
+  font-size: 13px;
+}

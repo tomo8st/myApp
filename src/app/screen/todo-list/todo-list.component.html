@@ -167,7 +167,8 @@
           <ng-container *ngIf="isCellEditable(i, 'category'); else readOnlyCategory">
             <mat-select [(ngModel)]="element.category" (selectionChange)="onCellEditComplete(element.category, i, 'category')"
                         [attr.data-row]="i"
-                        [attr.data-column]="'category'">
+                        [attr.data-column]="'category'"
+                        class="category-select">
               <mat-option *ngFor="let category of categories" [value]="category.id">
                 {{category.name}}
               </mat-option>
