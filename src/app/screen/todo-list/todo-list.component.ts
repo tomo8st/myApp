@@ -74,7 +74,7 @@ export class TodoListComponent implements OnInit {
   dataSource: any;                        // データソース
   displayedColumns: string[] =[
     // 'edit',                               // 編集ボタン列を追加 -> セルダブルクリックで編集するためコメントアウト
-    'moveRow',                            // 行の移動ボタン列を追加
+    // 'moveRow',                            // 行の移動ボタン列を追加
     // 'id',                                 // id -> 使用上は不要なので非表示化
     'date',                               // 日付
     'displayOrder',                       // 表示順
@@ -88,7 +88,7 @@ export class TodoListComponent implements OnInit {
     'diffefent',                          // 差異
     'planbegintime',                      // 計画時刻
     'etc',                                // 備考
-    'delete'                              // 削除ボタン列を追加
+    // 'delete'                              // 削除ボタン列を追加
   ];
   exportColumns: string[] = [
     'id',                                 // id 

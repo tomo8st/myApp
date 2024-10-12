@@ -75,7 +75,7 @@ input.cell-content {
 .mat-cell input,
 input.mat-input-element {
   font-family: inherit;
-  font-size: 9pt; /* すべての要素で同じフォントサイズを使用 */
+  font-size: 13px; /* フォントサイズを13pxに変更 */
 }
 
 /* 編集モード時の入力フィールドのスタイル */
@@ -166,7 +166,7 @@ input.mat-input-element {
 
 /* テーブルのセルの高さを調整 */
 .mat-row, .mat-header-row {
-  height: 30px;  /* 行の高さを30pxに設定 */
+  height: 25px;  /* 行の高さを30pxから25pxに変更 */
 }
 
 /* セル内のコンテンツの配置を調整 */
@@ -178,8 +178,8 @@ input.mat-input-element {
 /* 入力フィールドのスタイルを調整 */
 .input-cell {
   width: 100%;
-  height: 25px;
-  line-height: 25px;
+  height: 20px;  /* 高さを25pxから20pxに変更 */
+  line-height: 20px;  /* line-heightも20pxに変更 */
   border: none;
   background: transparent;
   padding: 0 4px;
@@ -196,43 +196,43 @@ input.mat-input-element {
 }
 
 .category-select {
-  height: 30px;
-  line-height: 30px;
+  height: 25px;  /* 高さを30pxから25pxに変更 */
+  line-height: 25px;  /* line-heightも25pxに変更 */
   width: 100%;
-  font-size: 14px; /* フォントサイズを14pxに設定 */
+  font-size: 13px;
 }
 
 .mat-select-value-text {
-  line-height: 30px;
-  font-size: 14px; /* フォントサイズを14pxに設定 */
+  line-height: 25px;  /* line-heightを30pxから25pxに変更 */
+  font-size: 13px;
 }
 
 .category-column {
   min-width: 150px;
   width: 150px;
-  font-size: 14px; /* フォントサイズを14pxに設定 */
+  font-size: 13px; /* フォントサイズを13pxに変更 */
 }
 
 /* mat-optionのスタイル */
 ::ng-deep .mat-option {
-  font-size: 14px; /* フォントサイズを14pxに設定 */
-  height: 30px; /* オプションの高さを調整 */
-  line-height: 30px;
+  font-size: 13px;
+  height: 25px;  /* 高さを30pxから25pxに変更 */
+  line-height: 25px;  /* line-heightも25pxに変更 */
 }
 
 /* mat-select-panelのスタイル */
 ::ng-deep .mat-select-panel {
-  font-size: 14px; /* フォントサイズを14pxに設定 */
+  font-size: 13px; /* フォントサイズを13pxに変更 */
 }
 
 /* オーバーレイコンテナのスタイル */
 ::ng-deep .cdk-overlay-container {
-  font-size: 14px; /* フォントサイズを14pxに設定 */
+  font-size: 13px; /* フォントサイズを13pxに変更 */
 }
 
 /* mat-option内のテキストのスタイル */
 ::ng-deep .mat-option-text {
-  font-size: 14px; /* フォントサイズを14pxに設定 */
+  font-size: 13px; /* フォントサイズを13pxに変更 */
 }
 
 /* テーブルのセルに縦の罫線を追加 */
@@ -293,4 +293,73 @@ input.mat-input-element {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.mat-column-date {
+  width: 110px;
+  max-width: 110px;
+  min-width: 110px;
+}
+
+/* カテゴリ列の幅を130pxに設定 */
+.mat-column-category {
+  width: 100px;
+  max-width: 100px;
+  min-width: 100px;
+}
+
+/* ToDo項目列の幅を150pxに設定 */
+.mat-column-item {
+  width: 150px;
+  max-width: 150px;
+  min-width: 150px;
+}
+
+/* 開始時刻列の幅を40pxに設定 */
+.mat-column-begintime {
+  width: 40px;
+  max-width: 40px;
+  min-width: 40px;
+} 
+
+/* 終了時刻列の幅を40pxに設定 */
+.mat-column-endtime {
+  width: 40px;
+  max-width: 40px;
+  min-width: 40px;
+}
+
+/* 計画時間列の幅を40pxに設定 */
+.mat-column-plantime {
+  width: 40px;
+  max-width: 40px;
+  min-width: 40px;
+}
+
+/* 実績時間列の幅を40pxに設定 */
+.mat-column-actualtime {
+  width: 40px;
+  max-width: 40px;
+  min-width: 40px;
+}
+
+/* 差異列の幅を40pxに設定 */
+.mat-column-diffefent {
+  width: 40px;
+  max-width: 40px;
+  min-width: 40px;
+}
+
+/* 計画時刻列の幅を40pxに設定 */
+.mat-column-planbegintime {
+  width: 40px;
+  max-width: 40px;
+  min-width: 40px;
+}
+
+/* 備考列の幅を150pxに設定 */
+.mat-column-etc {
+  width: 150px;
+  max-width: 150px;
+  min-width: 150px;
 }

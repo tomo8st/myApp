@@ -136,7 +136,7 @@
         </td>
       </ng-container>
 
-      <ng-container matColumnDef="date">
+      <ng-container matColumnDef="date" class="mat-column-date">
         <th mat-header-cell *matHeaderCellDef class="table-header">日付</th>
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
@@ -155,7 +155,7 @@
         </td>
       </ng-container>
   
-      <ng-container matColumnDef="category">
+      <ng-container matColumnDef="category" class="mat-column-category">
         <th mat-header-cell *matHeaderCellDef>カテゴリ</th>
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
@@ -177,7 +177,7 @@
         </td>
       </ng-container>
   
-      <ng-container matColumnDef="meeting">
+      <ng-container matColumnDef="meeting" class="mat-column-meeting">
         <th mat-header-cell *matHeaderCellDef
             class="table-header">
             MTG
@@ -199,7 +199,7 @@
         </td>
       </ng-container>
   
-      <ng-container matColumnDef="item">
+      <ng-container matColumnDef="item" class="mat-column-item">
         <th mat-header-cell *matHeaderCellDef class="table-header">ToDo項目</th>
         <td mat-cell *matCellDef="let element; let i = index"
             class="table-cell"
@@ -218,7 +218,7 @@
         </td>
       </ng-container>
       
-      <ng-container matColumnDef="begintime">
+      <ng-container matColumnDef="begintime" class="mat-column-begintime">
         <th mat-header-cell *matHeaderCellDef 
             class="table-header qright">
             開始時刻 
@@ -240,7 +240,7 @@
         </td>
       </ng-container>
     
-      <ng-container matColumnDef="endtime">
+      <ng-container matColumnDef="endtime" class="mat-column-endtime">
         <th mat-header-cell *matHeaderCellDef 
             class="table-header">
             終了時刻
@@ -262,7 +262,7 @@
         </td>
       </ng-container>
   
-      <ng-container matColumnDef="plantime">
+      <ng-container matColumnDef="plantime" class="mat-column-plantime">
         <th mat-header-cell *matHeaderCellDef 
             class="table-header">
             計画時間
@@ -284,7 +284,7 @@
         </td>
       </ng-container>
   
-      <ng-container matColumnDef="actualtime">
+      <ng-container matColumnDef="actualtime" class="mat-column-actualtime">
         <th mat-header-cell *matHeaderCellDef 
             class="table-header">
             実績時間 
@@ -306,7 +306,7 @@
         </td>
       </ng-container>
   
-      <ng-container matColumnDef="diffefent">
+      <ng-container matColumnDef="diffefent" class="mat-column-diffefent">
         <th mat-header-cell *matHeaderCellDef 
             class="table-header">
             差異 
@@ -328,7 +328,7 @@
         </td>
       </ng-container>
   
-      <ng-container matColumnDef="planbegintime">
+      <ng-container matColumnDef="planbegintime" class="mat-column-planbegintime">
         <th mat-header-cell *matHeaderCellDef 
             class="table-header">
             計画時刻
@@ -350,7 +350,7 @@
         </td>
       </ng-container>
 
-      <ng-container matColumnDef="etc">
+      <ng-container matColumnDef="etc" class="mat-column-etc">
         <th mat-header-cell *matHeaderCellDef 
             class="table-header">
             備考
@@ -373,7 +373,7 @@
       </ng-container>
 
       <!-- 削除ボタン列を追加 -->
-      <ng-container matColumnDef="delete">
+      <ng-container matColumnDef="delete" class="mat-column-delete" >
         <th mat-header-cell *matHeaderCellDef> 削除 </th>
         <td mat-cell *matCellDef="let element; let i = index">
           <button mat-icon-button color="warn" (click)="onClickDeleteButton(i)">
