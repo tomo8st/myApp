@@ -150,7 +150,9 @@
                    [attr.data-column]="'date'" />
           </ng-container>
           <ng-template #readOnly>
-            <div class="cell-content">{{element.date}}</div>
+            <div class="cell-content">
+              {{element.date | date:'yyyy/MM/dd'}} ({{element.date | japaneseWeekday}})
+            </div>
           </ng-template>
         </td>
       </ng-container>

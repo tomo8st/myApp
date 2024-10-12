@@ -296,9 +296,9 @@ input.mat-input-element {
 }
 
 .mat-column-date {
-  width: 110px;
-  max-width: 110px;
-  min-width: 110px;
+  width: 130px;
+  max-width: 130px;
+  min-width: 130px;
 }
 
 /* カテゴリ列の幅を130pxに設定 */
@@ -374,4 +374,31 @@ input.mat-input-element {
   text-align: center;
   padding: 0 !important;
   margin: 0 !important;
+}
+
+/* 日付列の幅を調整し、曜日を表示するためのスペースを確保 */
+.mat-column-date {
+  width: 130px;
+  max-width: 130px;
+  min-width: 130px;
+}
+
+/* 日付と曜日を縦に配置するためのスタイル */
+.date-with-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* 日付のスタイル */
+.date {
+  font-size: 13px;
+}
+
+/* 曜日のスタイル */
+.day-of-week {
+  font-size: 11px;
+  color: #666;
 }

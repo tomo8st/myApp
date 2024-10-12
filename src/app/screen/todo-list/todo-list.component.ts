@@ -24,6 +24,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { CsvImportDialogComponent } from './csv-import-dialog.component';
 import { ConfirmDialogComponent } from './confirm-dialog.component';
 import { MatSelectChange } from '@angular/material/select';
+import { JapaneseWeekdayPipe } from './japanese-weekday.pipe';
 // import { ElectronService } from 'ngx-electron';
 
 
@@ -61,7 +62,7 @@ class MyDateAdapter extends NativeDateAdapter {
   standalone: true,
   imports: [CommonModule, FormsModule, MatButtonModule, MatToolbarModule, MatIconModule, 
             MatTableModule, MatFormFieldModule, MatInputModule, MatDatepickerModule,
-            MatSelectModule, MatDialogModule],
+            MatSelectModule, MatDialogModule, JapaneseWeekdayPipe],
   templateUrl: './todo-list.component.html',
   styleUrl: './todo-list.component.css',
   providers: [
