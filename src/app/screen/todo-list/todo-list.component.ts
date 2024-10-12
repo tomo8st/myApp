@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, AfterViewInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 // import { MatTableModule } from '@angular/material/table';
@@ -70,7 +70,7 @@ class MyDateAdapter extends NativeDateAdapter {
     { provide: DateAdapter, useClass: MyDateAdapter }   
   ]
 })
-export class TodoListComponent implements OnInit {
+export class TodoListComponent implements OnInit, AfterViewInit {
   username = 'Test Name';                 // ユーザー名
   dataSource: any;                        // データソース
   displayedColumns: string[] =[
@@ -118,6 +118,12 @@ export class TodoListComponent implements OnInit {
 
   editingCell: { rowIndex: number | null, columnName: string | null } = { rowIndex: null, columnName: null };
 
+  selectedRow: number = 0;
+  selectedCol: number = 0;
+
+  selectedIndex: number = 0;
+  todos: any[] = []; // または適切な型を使用してください
+
   /**
    * コンストラクタ
    * @param categoryService カテゴリサービス
@@ -146,6 +152,11 @@ export class TodoListComponent implements OnInit {
     await this.loadCategories();
     await this.db2loadData();
 
+  }
+
+  ngAfterViewInit() {
+    // 初期選択を設定
+    this.updateSelectedCell();
   }
   
   // ------------------------------------------------------------
@@ -456,6 +467,71 @@ export class TodoListComponent implements OnInit {
    */
   public isCellEditable(rowIndex: number, columnName: string): boolean {
     return this.editingCell.rowIndex === rowIndex && this.editingCell.columnName === columnName;
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    switch(event.key) {
+      case 'ArrowUp':
+        // 最初の行よりも上には移動しない
+        console.log(`this.selectedIndex = ${this.selectedIndex}`);
+        if (this.selectedIndex > 0) {
+          this.selectedIndex--;
+          this.moveSelection(-1, 0);  // 上に移動
+        }
+        break;
+      case 'ArrowDown':
+        // 最後の行よりも下には移動しない
+        console.log(`this.selectedIndex = ${this.selectedIndex}`);
+        if (this.selectedIndex < this.dataSource.length - 1) {
+          this.selectedIndex++;
+          this.moveSelection(1, 0);  // 下に移動
+        }
+        break;
+      case 'ArrowLeft':
+        this.moveSelection(0, -1);  // 左に移動
+        break;
+      case 'ArrowRight':
+        this.moveSelection(0, 1);  // 右に移動
+        break;
+    }
+    // デフォルトの動作を防ぐ
+    event.preventDefault();
+  }
+
+  /**
+   * 選択されたセルを更新する
+   * @param rowDelta 
+   * @param colDelta 
+   */
+  moveSelection(rowDelta: number, colDelta: number) {
+    // 選択された行と列を更新
+    const newRow = Math.max(0, Math.min(this.selectedRow + rowDelta, this.dataSource.length - 1));
+    const newCol = Math.max(0, Math.min(this.selectedCol + colDelta, this.displayedColumns.length - 1));
+
+    // 選択された行と列が変更された場合は、選択されたセルを更新
+    if (newRow !== this.selectedRow || newCol !== this.selectedCol) {
+      this.selectedRow = newRow;
+      this.selectedCol = newCol;
+      this.updateSelectedCell();
+    }
+  }
+
+  /**
+   * 選択されたセルを更新する
+   */
+  updateSelectedCell() {
+    // 以前の選択を削除
+    const prevSelected = document.querySelector('.selected-cell');
+    if (prevSelected) {
+      prevSelected.classList.remove('selected-cell');
+    }
+
+    // 新しい選択を適用
+    const newSelected = document.querySelector(`table tr:nth-child(${this.selectedRow + 1}) td:nth-child(${this.selectedCol + 1})`);
+    if (newSelected) {
+      newSelected.classList.add('selected-cell');
+    }
   }
 
   // ------------------------------------------------------------
