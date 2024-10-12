@@ -76,8 +76,8 @@ export class TodoListComponent implements OnInit {
     // 'edit',                               // 編集ボタン列を追加 -> セルダブルクリックで編集するためコメントアウト
     // 'moveRow',                            // 行の移動ボタン列を追加
     // 'id',                                 // id -> 使用上は不要なので非表示化
-    'date',                               // 日付
     'displayOrder',                       // 表示順
+    'date',                               // 日付
     'category',                           // カテゴリ
     'meeting',                            // MTG
     'item',                               // ToDo項目

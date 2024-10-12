@@ -363,3 +363,15 @@ input.mat-input-element {
   max-width: 150px;
   min-width: 150px;
 }
+
+/* 見出し行のテキストを中央揃えにする */
+.mat-header-cell {
+  text-align: center;
+  justify-content: center;
+}
+
+.table-header {
+  text-align: center;
+  padding: 0 !important;
+  margin: 0 !important;
+}
