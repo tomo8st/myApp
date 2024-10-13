@@ -127,6 +127,8 @@ export class TodoListComponent implements OnInit, AfterViewInit {
   private pendingInput: string | null = null;
   private originalValue: string | null = null;
 
+  private isComposing: boolean = false;  // IME入力中かどうかを示すフラグ
+
   /**
    * コンストラクタ
    * @param categoryService カテゴリサービス
@@ -480,6 +482,9 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       if (event.key === 'Escape') {
         this.cancelEditing();
         event.preventDefault();
+      } else if (event.key === 'Enter' && !this.isComposing) {
+        this.finishEditing();
+        event.preventDefault();
       }
       return;
     }
@@ -519,6 +524,18 @@ export class TodoListComponent implements OnInit, AfterViewInit {
         }
     }
     event.preventDefault();
+  }
+
+  // IME入力開始時のイベントハンドラ
+  @HostListener('compositionstart')
+  onCompositionStart() {
+    this.isComposing = true;
+  }
+
+  // IME入力終了時のイベントハンドラ
+  @HostListener('compositionend')
+  onCompositionEnd() {
+    this.isComposing = false;
   }
 
   // 編集可能なキーかどうかを判定するメソッド
@@ -1212,6 +1229,17 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       
       // データソースを更新してビューを再描画
       this.dataSource = [...this.dataSource];
+    }
+  }
+
+  private finishEditing() {
+    if (this.editingCell.rowIndex !== null && this.editingCell.columnName !== null) {
+      const { rowIndex, columnName } = this.editingCell;
+      const inputElement = document.querySelector(`input[data-row="${rowIndex}"][data-column="${columnName}"]`) as HTMLInputElement;
+      if (inputElement) {
+        const newValue = inputElement.value;
+        this.onCellEditComplete(newValue, rowIndex, columnName);
+      }
     }
   }
 
