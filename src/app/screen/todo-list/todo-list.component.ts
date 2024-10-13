@@ -124,6 +124,9 @@ export class TodoListComponent implements OnInit, AfterViewInit {
   selectedIndex: number = 0;
   todos: any[] = []; // または適切な型を使用してください
 
+  private pendingInput: string | null = null;
+  private originalValue: string | null = null;
+
   /**
    * コンストラクタ
    * @param categoryService カテゴリサービス
@@ -457,6 +460,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
         console.log('指定された行が存在しません');
       }
     }
+    this.endEditing();
   }
 
   /**
@@ -471,32 +475,93 @@ export class TodoListComponent implements OnInit, AfterViewInit {
 
   @HostListener('window:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
+    // 編集モード中の処理
+    if (this.editingCell.rowIndex !== null && this.editingCell.columnName !== null) {
+      if (event.key === 'Escape') {
+        this.cancelEditing();
+        event.preventDefault();
+      }
+      return;
+    }
+
+    // 表示モード中の処理
     switch(event.key) {
       case 'ArrowUp':
         // 最初の行よりも上には移動しない
-        console.log(`this.selectedIndex = ${this.selectedIndex}`);
         if (this.selectedIndex > 0) {
           this.selectedIndex--;
           this.moveSelection(-1, 0);  // 上に移動
         }
+        this.pendingInput = null;
         break;
       case 'ArrowDown':
         // 最後の行よりも下には移動しない
-        console.log(`this.selectedIndex = ${this.selectedIndex}`);
         if (this.selectedIndex < this.dataSource.length - 1) {
           this.selectedIndex++;
           this.moveSelection(1, 0);  // 下に移動
         }
+        this.pendingInput = null;
         break;
       case 'ArrowLeft':
         this.moveSelection(0, -1);  // 左に移動
+        this.pendingInput = null;
         break;
       case 'ArrowRight':
         this.moveSelection(0, 1);  // 右に移動
+        this.pendingInput = null;
         break;
+      default:
+        if (this.isEditableKey(event) && this.selectedCell.rowIndex !== null && this.selectedCell.columnName !== null) {
+          this.pendingInput = event.key;
+          this.startEditing(this.selectedCell.rowIndex, this.selectedCell.columnName);
+          event.preventDefault();
+          return;
+        }
     }
-    // デフォルトの動作を防ぐ
     event.preventDefault();
+  }
+
+  // 編集可能なキーかどうかを判定するメソッド
+  private isEditableKey(event: KeyboardEvent): boolean {
+    // 制御キーやファンクションキーを除外
+    return event.key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey;
+  }
+
+  // 編集モードを開始するメソッド
+  private startEditing(rowIndex: number, columnName: string) {
+    this.editingCell = { rowIndex, columnName };
+    this.originalValue = this.dataSource[rowIndex][columnName];
+    
+    setTimeout(() => {
+      const inputElement = document.querySelector(`input[data-row="${rowIndex}"][data-column="${columnName}"]`) as HTMLInputElement;
+      if (inputElement) {
+        const currentValue = inputElement.value;
+        inputElement.focus();
+        if (this.pendingInput) {
+          inputElement.value = this.pendingInput + currentValue;
+          inputElement.setSelectionRange(1, 1);
+        } else {
+          inputElement.setSelectionRange(0, 0);
+        }
+        this.pendingInput = null;
+      }
+    }, 0);
+  }
+
+  // 編集をキャンセルするメソッド
+  private cancelEditing() {
+    if (this.editingCell.rowIndex !== null && this.editingCell.columnName !== null) {
+      const { rowIndex, columnName } = this.editingCell;
+      this.dataSource[rowIndex][columnName] = this.originalValue;
+      this.endEditing();
+      this.changeDetectorRef.detectChanges(); // 変更検出を強制的に実行
+    }
+  }
+
+  // 編集モードを終了するメソッド
+  private endEditing() {
+    this.editingCell = { rowIndex: null, columnName: null };
+    this.originalValue = null;
   }
 
   /**
@@ -777,8 +842,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
           console.log('更新結果:', result);
         } else {
           // 新しいデータの場合は挿入
-          result = await (window as any).electron.insertItem(editedItem);
-          console.log('挿入結果:', result);
+          result = await (window as any).electron.          console.log('挿入結果:', result);
           // 新しく挿入されたデータのIDを設定
           if (result && result.id) {
             editedItem.id = result.id;
