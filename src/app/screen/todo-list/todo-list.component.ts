@@ -504,6 +504,10 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       } else if (event.key === 'Enter' && !this.isComposing) {
         // エンターキーが押された場合は値を保存し編集を終了して表示モードに切り替え
         this.finishEditing();
+        if (this.selectedRowIndex < this.dataSource.length - 1) {
+          this.selectedRowIndex++;
+          this.updateSelectedCell();
+        }
         event.preventDefault();
       }
       return;
@@ -511,13 +515,11 @@ export class TodoListComponent implements OnInit, AfterViewInit {
 
     // 表示モード中の処理
     switch(event.key) {
-      case 'Escape':
-        this.cancelEditing();
-        event.preventDefault();
-        break;
       case 'Enter':
-        this.finishEditing();
-        event.preventDefault();
+        if (this.selectedRowIndex < this.dataSource.length - 1) {
+          this.selectedRowIndex++;
+          this.updateSelectedCell();
+        }
         break;
       case 'ArrowUp':
         if (this.selectedRowIndex > 0) {
