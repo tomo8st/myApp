@@ -416,7 +416,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     // 非同期で入力フィールドにフォーカスを当てる
     // setTimeout(() => this.focusInput(rowIndex, columnName), 0);
     this.pendingInput = null;
-    this.startEditing(rowIndex, columnName);
+    this.startEditing(rowIndex, columnName, false);
   }
 
   /**
@@ -493,7 +493,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
    */
   @HostListener('window:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
-    console.log('this.isEditing:', this.isEditing);
+    console.log('event.key:', event.key);
     // 編集モード中の処理
     // if (this.editingCell.rowIndex !== null && this.editingCell.columnName !== null) {
     if (this.isEditing) {
@@ -502,13 +502,17 @@ export class TodoListComponent implements OnInit, AfterViewInit {
         this.cancelEditing();
         event.preventDefault();
       } else if (event.key === 'Enter' && !this.isComposing) {
-        // エンターキーが押された場合は値を保存し編集を終了して表示モードに切り替え
+        // エンターキーが押された場合は値を保存し編集を終了して表示モードに切り替えて次の行に移動
         this.finishEditing();
         if (this.selectedRowIndex < this.dataSource.length - 1) {
           this.selectedRowIndex++;
           this.updateSelectedCell();
         }
         event.preventDefault();
+      } else if (event.key === 'F2') {
+         // F2キーが押された場合は値を保存し編集を終了して表示モードに切り替え
+         this.finishEditing();
+         event.preventDefault();
       }
       return;
     }
@@ -550,18 +554,25 @@ export class TodoListComponent implements OnInit, AfterViewInit {
           this.clearCellValue(this.selectedCell.rowIndex, this.selectedCell.columnName);
         }
         break;
+      case 'F2':
+        if (this.selectedCell.rowIndex !== null && this.selectedCell.columnName !== null) {
+          this.pendingInput = '';
+          this.startEditing(this.selectedCell.rowIndex, this.selectedCell.columnName, false);
+          event.preventDefault();
+          return;
+        }
+        break;
       default:
-        console.log('this.selectedCell:', this.selectedCell);
         if (this.isEditableKey(event) 
-          && this.selectedCell.rowIndex !== null 
-          && this.selectedCell.columnName !== null) {
+                    && this.selectedCell.rowIndex !== null 
+                    && this.selectedCell.columnName !== null) {
           this.pendingInput = event.key;
-          this.startEditing(this.selectedCell.rowIndex, this.selectedCell.columnName);
+          this.startEditing(this.selectedCell.rowIndex, this.selectedCell.columnName, true);
           event.preventDefault();
           return;
         }
     }
-    event.preventDefault();
+    event.preventDefault();     // デフォルトの動作をキャンセル
   }
 
   /**
@@ -595,10 +606,13 @@ export class TodoListComponent implements OnInit, AfterViewInit {
    * @param rowIndex 
    * @param columnName 
    */
-  private startEditing(rowIndex: number, columnName: string) {
+  private startEditing(rowIndex: number, columnName: string, doClear: boolean) {
     this.editingCell = { rowIndex, columnName };
     this.originalValue = this.dataSource[rowIndex][columnName];
     this.isEditing = true;
+    if (doClear) {
+      this.temporarilyClearCellValue(rowIndex, columnName);
+    }
     
     setTimeout(() => {
       const inputElement = document.querySelector(`input[data-row="${rowIndex}"][data-column="${columnName}"]`) as HTMLInputElement;
@@ -675,6 +689,23 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       this.updateBeginTimes();
     }
   }
+
+  /**
+   * セルの値を一時的にクリアする
+   * @param rowIndex 
+   * @param columnName 
+   */
+  private temporarilyClearCellValue(rowIndex: number, columnName: string) {
+    if (this.dataSource[rowIndex]) {
+      // 元の値を保存
+      this.originalValue = this.dataSource[rowIndex][columnName];
+      // 値を一時的にクリア
+      this.dataSource[rowIndex][columnName] = '';
+      // ビューを更新
+      this.changeDetectorRef.detectChanges();
+    }
+  }
+
   // ------------------------------------------------------------
   //
   // ロジック群
