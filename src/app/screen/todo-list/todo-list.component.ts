@@ -545,6 +545,11 @@ export class TodoListComponent implements OnInit, AfterViewInit {
           this.updateSelectedCell();
         }
         break;
+      case 'Delete':
+        if (this.selectedCell.rowIndex !== null && this.selectedCell.columnName !== null) {
+          this.clearCellValue(this.selectedCell.rowIndex, this.selectedCell.columnName);
+        }
+        break;
       default:
         console.log('this.selectedCell:', this.selectedCell);
         if (this.isEditableKey(event) 
@@ -656,6 +661,20 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     console.log('this.selectedCell:', this.selectedCell);
   }
 
+  /**
+   * セルの値をクリアする
+   * @param rowIndex 
+   * @param columnName 
+   */
+  private clearCellValue(rowIndex: number, columnName: string) {
+    if (this.dataSource[rowIndex]) {
+      this.dataSource[rowIndex][columnName] = '';
+      this.dataSource = [...this.dataSource];
+      this.saveData2db();
+      this.calculateActualTimeAndDifference();
+      this.updateBeginTimes();
+    }
+  }
   // ------------------------------------------------------------
   //
   // ロジック群
