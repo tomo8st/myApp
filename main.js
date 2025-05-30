@@ -50,34 +50,17 @@ function createWindow() {
 app.whenReady().then(() => {
   createWindow();
 
-  // データベースファイルのパスを指定
-  const dbPath = path.join(app.getPath('userData'), 'todoDatabase.sqlite');
-
-  // データベース接続
-  db = new Database(dbPath);
+  // データベースの初期化
+  db = dbAccess.initializeDatabase(app, Database);
   dbAccess.setDatabase(db);
-
-  // テーブル作成（必要に応じて）
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS todos (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      date TEXT,
-      displayOrder INTEGER,
-      category TEXT,
-      meeting TEXT,
-      item TEXT,
-      begintime TEXT,
-      endtime TEXT,
-      plantime TEXT,
-      actualtime TEXT,
-      diffefent TEXT,
-      planbegintime TEXT,
-      etc TEXT
-    )
-  `);
 })
 
 // 全ウインドウが閉じられたとき
+// 
+// このコードは：
+// macOS以外（WindowsやLinux）の場合：すべてのウィンドウが閉じられたときにアプリケーションを完全に終了（app.quit()）
+// macOSの場合：ウィンドウが閉じられてもアプリケーションは終了せず、Dockに残る
+// という、各OSのユーザー体験の慣習に従った動作を実現しています。
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();

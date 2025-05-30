@@ -1,12 +1,43 @@
 // データベース操作関連の関数をまとめたモジュール
 const fs = require('fs').promises;
 const stream = require('stream');
+const path = require('path');
 
 let db; // データベース接続を保持する変数
 
 // データベース接続を設定する関数
 function setDatabase(database) {
   db = database;
+}
+
+// データベースを初期化する関数
+function initializeDatabase(app, Database) {
+  // データベースファイルのパスを指定
+  const dbPath = path.join(app.getPath('userData'), 'todoDatabase.sqlite');
+
+  // データベース接続
+  db = new Database(dbPath);
+
+  // テーブル作成（必要に応じて）
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS todos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT,
+      displayOrder INTEGER,
+      category TEXT,
+      meeting TEXT,
+      item TEXT,
+      begintime TEXT,
+      endtime TEXT,
+      plantime TEXT,
+      actualtime TEXT,
+      diffefent TEXT,
+      planbegintime TEXT,
+      etc TEXT
+    )
+  `);
+
+  return db;
 }
 
 // テスト用のデータ取得関数
@@ -263,6 +294,7 @@ async function getAllItems() {
 
 module.exports = {
   setDatabase,
+  initializeDatabase,
   getItems,
   testIpc,
   writeArrayToJson,
