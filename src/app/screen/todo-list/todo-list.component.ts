@@ -16,6 +16,8 @@ import { DateAdapter, NativeDateAdapter } from '@angular/material/core';
 import { Injectable } from '@angular/core';
 import { MatSelectModule } from '@angular/material/select';
 import { CategoryService } from '../../service/category.service';
+import { TodoService } from '../../service/todo.service';
+import { UtilService } from '../../service/util.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
 import { saveAs } from 'file-saver';
@@ -138,11 +140,15 @@ export class TodoListComponent implements OnInit, AfterViewInit {
   /**
    * コンストラクタ
    * @param categoryService カテゴリサービス
+   * @param todoService Todoサービス
+   * @param utilService Utilサービス
    * @param router ルーター
    * @param dialog ダイアログ
    */
   constructor(
-    private categoryService: CategoryService, 
+    private categoryService: CategoryService,
+    private todoService: TodoService,
+    private utilService: UtilService,
     private router: Router, 
     private dialog: MatDialog,  
     private changeDetectorRef: ChangeDetectorRef
@@ -161,8 +167,15 @@ export class TodoListComponent implements OnInit, AfterViewInit {
 
     // データを読み込む
     await this.loadCategories();
-    await this.db2loadData();
-
+    try {
+      this.dataSource = await firstValueFrom(this.todoService.loadData(this.targetDate));
+      this.updatePlanBeginTimes();
+      this.updateBeginTimes();
+      this.calculateActualTimeAndDifference();
+    } catch (error) {
+      console.error('データの読み込み中にエラーが発生しました:', error);
+      this.dataSource = [];
+    }
   }
 
   ngAfterViewInit() {
@@ -182,7 +195,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
    *   ボタンクリックで ipc の指定イベト呼び出し
    */
   public onClickIpcTestBtn() {
-    // myapiイベントを引数を渡しながら呼び出す
+    // myapiイベントを呼び出す
     //   同時にイベントからの戻り値を受け取る
     this.loadData();
   }
@@ -197,11 +210,16 @@ export class TodoListComponent implements OnInit, AfterViewInit {
   /**
    * DB検索ボタン押下イベント
    */  
-  public onClickDbSearchButton() {
-    this.db2loadData();
-    this.updatePlanBeginTimes();
-    this.updateBeginTimes();
-    this.calculateActualTimeAndDifference(); // この行を追加
+  public async onClickDbSearchButton() {
+    try {
+      this.dataSource = await firstValueFrom(this.todoService.loadData(this.targetDate));
+      this.updatePlanBeginTimes();
+      this.updateBeginTimes();
+      this.calculateActualTimeAndDifference();
+    } catch (error) {
+      console.error('データの読み込み中にエラーが発生しました:', error);
+      this.dataSource = [];
+    }
   }
   /**
    * クリアボタン押下イベント
@@ -260,7 +278,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     this.targetDate = event.value;
     
     // 日付フィルタを適用する
-    this.db2loadData();
+    this.onClickDbSearchButton();
   }
 
   /**
@@ -746,127 +764,6 @@ export class TodoListComponent implements OnInit, AfterViewInit {
   }
   
   /**
-   * データベースからデータを読み込む
-   */
-  private async db2loadData() {
-    try {
-      // 日付をフォーマットする
-      const formatedDate = this.targetDate ? this.formatDate(this.targetDate) : null;
-      if (formatedDate === null) {
-        console.error('無効な日付です');
-        return;
-      }
-      console.log(`formatedDate = ${formatedDate}`);
-  
-      console.log('Electron object:', (window as any).electron);
-      console.log('Electron debug:', (window as any).electronDebug);
-  
-      if (!(window as any).electron || typeof (window as any).electron.invoke !== 'function') {
-        throw new Error('electron.invoke is not available');
-      }
-  
-      console.log('Invoking getItems...');
-
-      // データベースからデータを読み込む
-      const result = await (window as any).electron.invoke('getItems', formatedDate);
-      console.log('getItems result:', result);
-      // データをデータソースに設定
-      if (Array.isArray(result)) {
-        // this.dataSource = await this.convertCategoryIdsToNames(result);
-        this.dataSource = result;
-        console.log('this.dataSource:', this.dataSource);
-        this.updatePlanBeginTimes();
-        this.calculateActualTimeAndDifference();
-        this.updateBeginTimes(); // この行を追加
-      } else {
-        console.error('予期しないデータ形式:', result);
-        this.dataSource = [];
-      }
-    } catch (error) {
-      console.error('データの読み込み中にエラーが発生しました:', error);
-      // エラー処理（例：ユーザーへの通知）
-      this.dataSource = [];
-    }
-  }
-    
-  /**
-   * 指定されたインデクスの行を削す
-   * @param index 削除する行のインデックス
-   */
-  private async deleteRow(index: number) {
-    if (index >= 0 && index < this.dataSource.length) {
-      // DBから行を削除
-      const itemToDelete = this.dataSource[index];
-      try {
-        const result = await (window as any).electron.deleteItem(itemToDelete);
-        console.log('削除結果:', result);
-        if (result.changes > 0) {
-          console.log('行が正常に削除れました');
-        } else {
-          console.warn('削除対象の行が見つかりませんでした');
-        }
-      } catch (error) {
-        console.error('行の削除中にエラーが発生しました:', error);
-        // エラー処理（例：ユーザーへの通知）
-        return; // 削除に失敗した場合、以降の処理を中止
-      }
-
-      // データソースから行を削除
-      this.dataSource.splice(index, 1);
-      // データソースの更新をトリガーするために新しい配列を作成
-      this.dataSource = [...this.dataSource];
-    }
-  }
-
-  /**
-   * 新しい行を追加する
-   * @returns 
-   */
-  private async addRow() {
-    // 日付をフォーマットする
-    const formatedDate = this.targetDate ? this.formatDate(this.targetDate) : null;
-    console.log(`formatedDate = ${formatedDate}`);
-    if (formatedDate === null) {
-      console.error('無効な日付です');
-      return;
-    }
-    // 新しい行を追加する
-    const addData = {
-      id: null,
-      date: formatedDate,
-      displayOrder: this.dataSource.length + 1,
-      category: "0",
-      meeting: "◯",
-      item: "運動-1",
-      begintime: "11:20",
-      endtime: "11:50",
-      plantime: "10:00",
-      actualtime: "15:00",
-      diffefent: "5:00",
-      planbegintime: "11:40",
-      etc: "etc"
-    };
-    
-    try {
-      // データベースに新しい行を挿入
-      const result = await (window as any).electron.insertItem(addData);
-      console.log('挿入結果:', result);
-
-      // 挿入されたデータのIDを取得し、addDataに追加
-      addData.id = result.id;
-
-      // データソースに新しい行を追加
-      this.dataSource.push(addData);
-      this.dataSource = [...this.dataSource];
-
-      console.log('新しい行が正常に追加されました');
-    } catch (error) {
-      console.error('新しい行の追加中にエラーが発生しました:', error);
-      // エラー処理（例：ユーザーへの通知）
-    }
-  }
-
-  /**
    * データベースにデータを保存する
    */
   private async saveData2db() {
@@ -914,6 +811,67 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       // エラー処理（例：ユーザーへの通知）
     }
   }
+    
+  /**
+   * 指定されたインデクスの行を削す
+   * @param index 削除する行のインデックス
+   */
+  private async deleteRow(index: number) {
+    try {
+      this.dataSource = await this.todoService.deleteRow(this.dataSource, index);
+    } catch (error) {
+      console.error('行の削除中にエラーが発生しました:', error);
+      // エラー処理（例：ユーザーへの通知）
+    }
+  }
+
+  /**
+   * 新しい行を追加する
+   * @returns 
+   */
+  private async addRow() {
+    // 日付をフォーマットする
+    const formatedDate = this.targetDate ? this.utilService.formatDate(this.targetDate) : null;
+    console.log(`formatedDate = ${formatedDate}`);
+    if (formatedDate === null) {
+      console.error('無効な日付です');
+      return;
+    }
+    // 新しい行を追加する
+    const addData = {
+      id: null,
+      date: formatedDate,
+      displayOrder: this.dataSource.length + 1,
+      category: "0",
+      meeting: "◯",
+      item: "運動-1",
+      begintime: "11:20",
+      endtime: "11:50",
+      plantime: "10:00",
+      actualtime: "15:00",
+      diffefent: "5:00",
+      planbegintime: "11:40",
+      etc: "etc"
+    };
+    
+    try {
+      // データベースに新しい行を挿入
+      const result = await (window as any).electron.insertItem(addData);
+      console.log('挿入結果:', result);
+
+      // 挿入されたデータのIDを取得し、addDataに追加
+      addData.id = result.id;
+
+      // データソースに新しい行を追加
+      this.dataSource.push(addData);
+      this.dataSource = [...this.dataSource];
+
+      console.log('新しい行が正常に追加されました');
+    } catch (error) {
+      console.error('新しい行の追加中にエラーが発生しました:', error);
+      // エラー処理（例：ユーザーへの通知）
+    }
+  }
 
   /**
    * 表示データに日付フィルターを適用する
@@ -923,7 +881,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     await this.loadData();
 
     if (this.targetDate) {
-      const dateString = this.formatDate(this.targetDate);
+      const dateString = this.utilService.formatDate(this.targetDate);
       console.log(`フィルター適用日: ${dateString}`);
       // 読み込んだ全データに対してフィルターを適用
       this.dataSource = this.dataSource.filter((item: any) => item.date === dateString);
@@ -1107,7 +1065,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       ].join('\n');
       // CSVデータファイルに保存
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const filename = `todo_list_all_${this.formatDate(new Date())}.csv`;
+      const filename = `todo_list_all_${this.utilService.formatDate(new Date())}.csv`;
       saveAs(blob, filename);
 
       console.log('CSVエクスポートが完了しました。');
@@ -1169,7 +1127,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       if (result.success) {
         console.log('CSVデータが正常にインポートされました');
         // データを再読み込み
-        await this.db2loadData();
+        await this.onClickDbSearchButton();
       } else {
         console.error('CSVデータのインポートに失敗しました:', result.message);
       }
