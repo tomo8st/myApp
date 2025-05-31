@@ -163,10 +163,25 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     // 日付を設定する
     this.targetDate = new Date();
 
-    await this.initializeCategoryTable();
+    // カテゴリテーブルを初期化する
+    try {
+      await firstValueFrom(this.categoryService.createCategoryTable());
+      console.log('カテゴリテーブルが作成されました');
+      await firstValueFrom(this.categoryService.insertInitialCategories());
+      console.log('初期カテゴリが挿入されました');
+    } catch (error) {
+      console.error('カテゴリテーブルの初期化中にエラーが発生しました:', error);
+    }
+
+    // カテゴリを読み込む
+    try {
+      this.categories = await firstValueFrom(this.categoryService.getCategories());
+      console.log('カテゴリが読み込まれました:', this.categories);
+    } catch (error) {
+      console.error('カテゴリの読み込み中にエラーが発生しました:', error);
+    }
 
     // データを読み込む
-    await this.loadCategories();
     try {
       this.dataSource = await firstValueFrom(this.todoService.loadData(this.targetDate));
       this.updatePlanBeginTimes();
@@ -194,24 +209,33 @@ export class TodoListComponent implements OnInit, AfterViewInit {
    * 
    *   ボタンクリックで ipc の指定イベト呼び出し
    */
-  public onClickIpcTestBtn() {
-    // myapiイベントを呼び出す
-    //   同時にイベントからの戻り値を受け取る
-    this.loadData();
+  public async onClickIpcTestBtn() {
+    try {
+      this.dataSource = await this.todoService.loadDataFromFile();
+    } catch (error) {
+      console.error('データの読み込み中にエラーが発生しました:', error);
+      // エラー処理（例：ユーザーへの通知）
+    }
   }
 
   /**
    * DB保存ボタン押下イベント
    */
-  public onClickDbSaveButton() {
-    this.saveData2db();
-  } 
+  public async onClickDbSaveButton() {
+    try {
+      await this.todoService.saveData2db(this.dataSource);
+    } catch (error) {
+      console.error('データの保存中にエラーが発生しました:', error);
+      // エラー処理（例：ユーザーへの通知）
+    }
+  }
 
   /**
    * DB検索ボタン押下イベント
    */  
   public async onClickDbSearchButton() {
     try {
+      // データを読み込む
       this.dataSource = await firstValueFrom(this.todoService.loadData(this.targetDate));
       this.updatePlanBeginTimes();
       this.updateBeginTimes();
@@ -231,9 +255,16 @@ export class TodoListComponent implements OnInit, AfterViewInit {
   /**
    * プラスボタン押下イベント
    */
-  public onClickPlusButton() {
-    console.log("onClickPlusButton()");
-    this.addRow();
+  public async onClickPlusButton() {
+    try {
+      const newRow = await this.todoService.addRow(this.targetDate, this.dataSource.length);
+      this.dataSource.push(newRow);
+      this.dataSource = [...this.dataSource];
+      console.log('新しい行が正常に追加されました');
+    } catch (error) {
+      console.error('新しい行の追加中にエラーが発生しました:', error);
+      // エラー処理（例：ユーザーへの通知）
+    }
   }
    
   /**
@@ -285,8 +316,13 @@ export class TodoListComponent implements OnInit, AfterViewInit {
    * 削除ボタン押下イベント
    * @param index 削除する行のインデックス
    */
-  public onClickDeleteButton(index: number) {
-    this.deleteRow(index);
+  public async onClickDeleteButton(index: number) {
+    try {
+      this.dataSource = await this.todoService.deleteRow(this.dataSource, index);
+    } catch (error) {
+      console.error('行の削除中にエラーが発生しました:', error);
+      // エラー処理（例：ユーザーへの通知）
+    }
   }
 
   /**
@@ -321,10 +357,17 @@ export class TodoListComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * テーブル削除&再作成ボタン押下イト
+   * テーブル削除＆再作成ボタン押下イベント
    */
   public async onClickTableDeleteAndRecreateButton() {
-    this.deleteAndRecreateTable();
+    try {
+      await this.todoService.deleteAndRecreateTable();
+      this.dataSource = [];
+      console.log('テーブルが正常に削除され、再作成されました。データソースをクリアしました。');
+    } catch (error) {
+      console.error('テーブル削除と再作成中にエラーが発生しました:', error);
+      // エラー処理（例：ユーザーへの通知）
+    }
   }
   
   /**
@@ -332,15 +375,12 @@ export class TodoListComponent implements OnInit, AfterViewInit {
    */
   public async onClickCreateCategoryTableButton() {
     try {
-      await firstValueFrom(this.categoryService.createCategoryTable().pipe(
-        catchError((error: any) => {
-          console.error('カテゴリテーブルの作成中にエラーが発生しました:', error);
-          throw error;
-        })
-      ));
+      await firstValueFrom(this.categoryService.createCategoryTable());
       console.log('カテゴリテーブルが作成されました');
-      await this.insertInitialCategories();
+      await firstValueFrom(this.categoryService.insertInitialCategories());
+      console.log('初期カテゴリが挿入されました');
     } catch (error) {
+      console.error('カテゴリテーブルの作成中にエラーが発生しました:', error);
       // エラーメッセージをユーザーに表示するロジックをここに追加
     }
   }
@@ -365,18 +405,35 @@ export class TodoListComponent implements OnInit, AfterViewInit {
   /**
    * CSVエクスポートボタン押下イベント
    */
-  public onClickCsvExportButton() {
-    this.exportToCsv();
+  public async onClickCsvExportButton() {
+    try {
+      await this.todoService.exportToCsv();
+    } catch (error) {
+      console.error('CSVエクスポート中にエラーが発生しました:', error);
+    }
   }
 
   /**
    * CSVインポートボタン押下イベント
    */
-  public onClickCsvImportButton() {
+  public async onClickCsvImportButton() {
     const dialogRef = this.dialog.open(CsvImportDialogComponent);
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe(async result => {
       if (result) {
-        this.importCsvData(result);
+        try {
+          // CSVデータをインポート
+          const importResult = await this.todoService.importCsvData(result);
+          // インポートが成功した場合はデータを再読み込み
+          if (importResult.success) {
+            console.log('CSVデータが正常にインポートされました');
+            // データを再読み込み
+            await this.onClickDbSearchButton();
+          } else {
+            console.error('CSVデータのインポートに失敗しました:', importResult.message);
+          }
+        } catch (error) {
+          console.error('CSVインポート中にエラーが発生しました:', error);
+        }
       }
     });
   }
@@ -393,9 +450,24 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       }
     });
     // ダイアログが閉じた後の処理
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe(async result => {
       if (result) {
-        this.deleteAllTodos();
+        try {
+          // 全ToDoを削除
+          const deleteResult = await this.todoService.deleteAllTodos();
+          // 削除が成功した場合はデータを再読み込み
+          if (deleteResult.success) {
+            console.log('全てのToDoが正常に削除されました');
+            // データソースをクリア
+            this.dataSource = [];
+            // ビューを更新
+            this.dataSource = [...this.dataSource];
+          } else {
+            console.error('全ToDoの削除に失敗しました:', deleteResult.message);
+          }
+        } catch (error) {
+          console.error('全ToDo削除中にエラーが発生しました:', error);
+        }
       }
     });
   }
@@ -454,7 +526,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
    * セル編集完了イベント
    * @param event 
    */
-  public onCellEditComplete(newValue: any, rowIndex: number, columnName: string) {
+  public async onCellEditComplete(newValue: any, rowIndex: number, columnName: string) {
     // 編集されたデータを保存
     const updatedData = {
       ...this.dataSource[rowIndex],
@@ -465,9 +537,14 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     if (rowIndex !== null && columnName !== null) {
       this.dataSource[rowIndex] = updatedData;
       this.editingCell = { rowIndex: null, columnName: null };
-      this.saveData2db();                         // 編集されたデータを保存
-      this.calculateActualTimeAndDifference();    // 実績時間を計算
-      this.updateBeginTimes();                    // 開始時刻を更新
+      try {
+        await this.todoService.saveData2db(this.dataSource);
+        this.calculateActualTimeAndDifference();    // 実績時間を計算
+        this.updateBeginTimes();                    // 開始時刻を更新
+      } catch (error) {
+        console.error('データの保存中にエラーが発生しました:', error);
+        // エラー処理（例：ユーザーへの通知）
+      }
       
       // 変更検出を強制的に実行
       this.changeDetectorRef.detectChanges();
@@ -698,13 +775,18 @@ export class TodoListComponent implements OnInit, AfterViewInit {
    * @param rowIndex 
    * @param columnName 
    */
-  private clearCellValue(rowIndex: number, columnName: string) {
+  private async clearCellValue(rowIndex: number, columnName: string) {
     if (this.dataSource[rowIndex]) {
       this.dataSource[rowIndex][columnName] = '';
       this.dataSource = [...this.dataSource];
-      this.saveData2db();
-      this.calculateActualTimeAndDifference();
-      this.updateBeginTimes();
+      try {
+        await this.todoService.saveData2db(this.dataSource);
+        this.calculateActualTimeAndDifference();
+        this.updateBeginTimes();
+      } catch (error) {
+        console.error('データの保存中にエラーが発生しました:', error);
+        // エラー処理（例：ユーザーへの通知）
+      }
     }
   }
 
@@ -731,165 +813,6 @@ export class TodoListComponent implements OnInit, AfterViewInit {
   // ------------------------------------------------------------
 
   /**
-   * テーブル削除＆再作成ボタン押下イベント
-   */
-  private async deleteAndRecreateTable() {
-    try {
-      const result = await (window as any).electron.deleteAndRecreateTable();
-      console.log(result.message);
-      if (result.success) {
-        this.dataSource = [];
-        console.log('テーブルが正常に削除され、再作成されました。データソースをクリアしました。');
-      } else {
-        console.error('テーブルの削除と再作成に失敗しました:', result.message);
-      }
-    } catch (error) {
-      console.error('テーブル削除と再作成中にエラーが発生しました:', error);
-    }
-  }
-
-  /**
-   * ファイルからデータを読み込み
-   */
-  private async loadData() {
-    try {
-      // ファイルからデータを読み込む
-      const message = await (window as any).electron.testIpc();
-      console.log('読み込んだデータ:', message);
-      this.dataSource = JSON.parse(message.data);
-    } catch (error) {
-      console.error('データの読み込み中にエラーが発生しました:', error);
-      // エラー処理（例：ユーザーへの通知）
-    }
-  }
-  
-  /**
-   * データベースにデータを保存する
-   */
-  private async saveData2db() {
-    try {
-      // データベースにデータを保存する
-      for (const item of this.dataSource) {
-        const saveItem = {
-          id: item.id,
-          date: item.date || '',
-          displayOrder: item.displayOrder || '',
-          // category: this.getCategoryId(item.category),
-          category: item.category || '',
-          meeting: item.meeting || '',
-          item: item.item || '',
-          begintime: item.begintime || '',
-          endtime: item.endtime || '',
-          plantime: item.plantime || '',
-          actualtime: item.actualtime || '',
-          diffefent: item.diffefent || '',
-          planbegintime: item.planbegintime || '',
-          etc: item.etc || ''
-        };
-
-        // カテゴリIDを整数に変換（未定義の場合は0を使用）
-        //saveItem.category = parseInt(saveItem.category?.toString() ?? '0', 10);
-
-        console.log('item.category:', item.category);
-        console.log('saveItem.category:', saveItem.category);
-
-        let result;
-        if (saveItem.id) {
-          // 既存のデータの場合は更新
-          result = await (window as any).electron.updateItem(saveItem);
-          console.log('更新結果:', result);
-        } else {
-          // 新しいデータの場合は挿入
-          result = await (window as any).electron.insertItem(saveItem);
-          console.log('挿入結果:', result);
-        }
-      }
-      console.log('全てのデータが正常に保存されました');
-      // 保存成功時の処理（例：ユーザーへの通知など）
-    } catch (error) {
-      console.error('データの保存中にエラーが発生しました:', error);
-      // エラー処理（例：ユーザーへの通知）
-    }
-  }
-    
-  /**
-   * 指定されたインデクスの行を削す
-   * @param index 削除する行のインデックス
-   */
-  private async deleteRow(index: number) {
-    try {
-      this.dataSource = await this.todoService.deleteRow(this.dataSource, index);
-    } catch (error) {
-      console.error('行の削除中にエラーが発生しました:', error);
-      // エラー処理（例：ユーザーへの通知）
-    }
-  }
-
-  /**
-   * 新しい行を追加する
-   * @returns 
-   */
-  private async addRow() {
-    // 日付をフォーマットする
-    const formatedDate = this.targetDate ? this.utilService.formatDate(this.targetDate) : null;
-    console.log(`formatedDate = ${formatedDate}`);
-    if (formatedDate === null) {
-      console.error('無効な日付です');
-      return;
-    }
-    // 新しい行を追加する
-    const addData = {
-      id: null,
-      date: formatedDate,
-      displayOrder: this.dataSource.length + 1,
-      category: "0",
-      meeting: "◯",
-      item: "運動-1",
-      begintime: "11:20",
-      endtime: "11:50",
-      plantime: "10:00",
-      actualtime: "15:00",
-      diffefent: "5:00",
-      planbegintime: "11:40",
-      etc: "etc"
-    };
-    
-    try {
-      // データベースに新しい行を挿入
-      const result = await (window as any).electron.insertItem(addData);
-      console.log('挿入結果:', result);
-
-      // 挿入されたデータのIDを取得し、addDataに追加
-      addData.id = result.id;
-
-      // データソースに新しい行を追加
-      this.dataSource.push(addData);
-      this.dataSource = [...this.dataSource];
-
-      console.log('新しい行が正常に追加されました');
-    } catch (error) {
-      console.error('新しい行の追加中にエラーが発生しました:', error);
-      // エラー処理（例：ユーザーへの通知）
-    }
-  }
-
-  /**
-   * 表示データに日付フィルターを適用する
-   */
-  private async applyFilter() {
-    // まず、ファイルからデータを読み込む
-    await this.loadData();
-
-    if (this.targetDate) {
-      const dateString = this.utilService.formatDate(this.targetDate);
-      console.log(`フィルター適用日: ${dateString}`);
-      // 読み込んだ全データに対してフィルターを適用
-      this.dataSource = this.dataSource.filter((item: any) => item.date === dateString);
-    }
-    // 日付が選択されていない場合は、loadData()で読み込んだ全データがそのまま表示される
-  }
-  
-  /**
    * エディットボタン押下イベント
    * @param index 
    */
@@ -897,27 +820,11 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     // 編集中の行が同じ場合は編集を終了し、データを保存する
     if (this.editableIndex === index) {
       this.editableIndex = null;
-      const editedItem = this.dataSource[index];
       try {
-        let result;
-        if (editedItem.id) {
-          console.log('更新用データ:', editedItem);
-          // 既存のデータの場合は更新
-          result = await (window as any).electron.updateItem(editedItem);
-          console.log('更新結果:', result);
-        } else {
-          // 新しいデータの場合は挿入
-          result = await (window as any).electron.insertItem(editedItem);
-          console.log('挿入結果:', result);
-          // 新しく挿入されたデータのIDを設定
-          if (result && result.id) {
-            editedItem.id = result.id;
-          }
-        }
+        await this.todoService.saveData2db(this.dataSource);
         console.log('データが正常に保存されました');
         this.calculateActualTimeAndDifference();
         this.updateBeginTimes();
-        // 保存成功時の処理（例：ユーザーへの通知など）
       } catch (error) {
         console.error('データの保存中にエラーが発生しました:', error);
         // エラー処理（例：ユーザーへの通知）
@@ -962,31 +869,11 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       item.displayOrder = idx + 1;
     });
     this.dataSource = [...this.dataSource];
-    this.saveData2db();
-  }
-
-  /**
-   * カテゴリテーブルを初期化する
-   */
-  private async initializeCategoryTable() {
     try {
-      await firstValueFrom(this.categoryService.createCategoryTable());
-      console.log('カテゴリテーブルが作成されました');
-      await this.insertInitialCategories();
+      await this.todoService.saveData2db(this.dataSource);
     } catch (error) {
-      console.error('カテゴリテーブルの作成中にエラーが発生しました:', error);
-    }
-  }
-
-  /**
-   * 初期カテゴリを挿入する
-   */
-  private async insertInitialCategories() {
-    try {
-      await firstValueFrom(this.categoryService.insertInitialCategories());
-      console.log('初期カテゴリが挿入されました');
-    } catch (error) {
-      console.error('初期カテゴリの挿入中にエラーが発生しました:', error);
+      console.error('データの保存中にエラーが発生しました:', error);
+      // エラー処理（例：ユーザーへの通知）
     }
   }
 
@@ -1041,179 +928,6 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     return result;
   }
   
-  /**
-   * データをCSV形式でエクスポートする
-   */
-  private async exportToCsv() {
-    try {
-      // todoテーブルのすべてのデータを取得
-      const allData = await (window as any).electron.getAllItems();
-
-      // エクスポートするデータがない場合は処理を終了
-      if (!allData || allData.length === 0) {
-        console.warn('エクスポートするデータがありません。');
-        return;
-      }
-      // 表示列名を取得
-      const headers = this.exportColumns.map(column => this.getColumnDisplayName(column));
-      // CSVデータを作成
-      const csvContent = [
-        headers.join(','),
-        ...allData.map((row: any) => 
-          this.exportColumns.map(column => this.escapeCSV(row[column])).join(',')
-        )
-      ].join('\n');
-      // CSVデータファイルに保存
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const filename = `todo_list_all_${this.utilService.formatDate(new Date())}.csv`;
-      saveAs(blob, filename);
-
-      console.log('CSVエクスポートが完了しました。');
-    } catch (error) {
-      console.error('CSVエクスポート中にエラーが発生しました:', error);
-      // エラー処理（例：ユーザーへの通知）
-    }
-  }
-
-  /**
-   * 列名を表示用の名前に変換する
-   */
-  private getColumnDisplayName(column: string): string {
-    // 表示名を設定
-    const displayNames: { [key: string]: string } = {
-      // 'edit': '編集',
-      // 'moveRow': '移動',
-      'id': 'ID',
-      'date': '日付',
-      'displayOrder': '表示順',
-      'category': 'カテゴリ',
-      'meeting': 'MTG',
-      'item': 'ToDo項目',
-      'begintime': '開始時刻',
-      'endtime': '終了時刻',
-      'plantime': '計画時間',
-      'actualtime': '実績時間',
-      'diffefent': '差異',
-      'planbegintime': '計画時刻',
-      'etc': '備考',
-      // 'delete': '削除'
-    };
-    return displayNames[column] || column;
-  }
-
-  /**
-   * CSV用にデータをエスケープする
-   */
-  private escapeCSV(data: any): string {
-    // データがnullの場合は空文字を返す
-    if (data == null) return '';
-    // データが文字列の場合はエスケープする
-        if (typeof data === 'string') {
-      return `"${data.replace(/"/g, '""')}"`;
-    }
-    // データが文字列でない場合はそのまま返す
-    return data.toString();
-  }
-  
-  /**
-   * CSVデータをインポートする
-   */
-  private async importCsvData(csvData: string) {
-    try {
-      // CSVデータをインポート
-      const result = await (window as any).electron.importCsvData(csvData);
-      console.log('CSVインポート結果:', result);
-      // インポートが成功した場合はデータを再読み込み
-      if (result.success) {
-        console.log('CSVデータが正常にインポートされました');
-        // データを再読み込み
-        await this.onClickDbSearchButton();
-      } else {
-        console.error('CSVデータのインポートに失敗しました:', result.message);
-      }
-    } catch (error) {
-      console.error('CSVインポート中にエラーが発生しました:', error);
-    }
-  }
-
-  /**
-   * 全ToDoを削除する
-   */
-  private async deleteAllTodos() {
-    try {
-      // 全ToDoを削除
-      const result = await (window as any).electron.invoke('deleteAllTodos');
-      console.log('全ToDo削除結果:', result);
-      // 削除が成功した場合はデータを再読み込み
-      if (result.success) {
-        console.log('全てのToDoが正常に削除されました');
-        // データソースをクリア
-        this.dataSource = [];
-        // ビューを更新
-        this.dataSource = [...this.dataSource];
-      } else {
-        console.error('全ToDoの削除に失敗しました:', result.message);
-      }
-    } catch (error) {
-      console.error('全ToDo削除中にエラーが発生しました:', error);
-    }
-  }
-
-  // ------------------------------------------------------------
-  //
-  // ユーティリティ群
-  //
-  // ------------------------------------------------------------
-
-  /**
-   * 日付を文字列(YYYY/MM/DD)に変換する
-   * @param date 日付
-   * @returns 日付文字列
-   */
-  private formatDate(date: Date): string {
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    return `${year}/${month}/${day}`;
-  }
-
-  /**
-   * カテゴリを読み込む
-   */
-  private async loadCategories() {
-    try {
-      this.categories = await firstValueFrom(this.categoryService.getCategories());
-      console.log('カテゴリが読み込まれました:', this.categories);
-    } catch (error) {
-      console.error('カテゴリの読み込み中にエラーが発生しました:', error);
-    }
-  }
-
-  /**
-   * カテゴリIDをカテゴリ名に変換する
-   * @param data データ
-   * @returns カテゴリ名
-   */
-  private async convertCategoryIdsToNames(data: any[]): Promise<any[]> {
-    return Promise.all(data.map(async (item) => {
-      console.log('item:', item);
-      const categories = this.categoryService.getCategoryName(item.category);
-      console.log('categories:', categories);
-      const categoryName = await firstValueFrom(categories);
-      return { ...item, category: categoryName };
-    }));
-  }
-
-  /**
-   * カテゴリ名をカテゴリIDに変換する
-   * @param categoryName カテゴリ名
-   * @returns カテゴリID
-   */
-  private getCategoryId(categoryName: string): number | undefined {
-    const category = this.categories.find(c => c.name === categoryName);
-    return category ? category.id : undefined;
-  }
-
   /**
    * 実績時間を計算し、差異を算出する
    */
