@@ -143,7 +143,6 @@ app.on('will-quit', () => {
   // アプリ終了時にDBを閉じる
   if (db) db.close();
 });
-
 // addCategoryイベントハンドラの修正
 ipcMain.handle('addCategory', async (event, name) => {
   return await dbAccess.addCategory(name);
@@ -165,77 +164,6 @@ ipcMain.handle('getAllItems', async () => {
 });
 
 // CSVデータをインポートするイベントハンドラ
-// /Users/tomo/Library/Application Support/my-app
 ipcMain.handle('importCsvData', async (event, csvData) => {
-  console.log('CSVデータのインポートを開始します');
-  
-  try {
-    const results = [];
-    const bufferStream = new stream.PassThrough();
-    bufferStream.end(Buffer.from(csvData));
-
-    let isFirstRow = true; // 1行目をスキップするためのフラグ
-
-    await new Promise((resolve, reject) => {
-      bufferStream
-        .pipe(csv())
-        .on('data', (data) => {
-          if (isFirstRow) {
-            isFirstRow = false; // 1行目をスキップ
-          } else {
-            results.push(data);
-          }
-        })
-        .on('end', () => {
-          console.log('CSVの解析が完了しました');
-          resolve();
-        })
-        .on('error', (error) => {
-          console.error('CSVの解析中にエラーが発生しました:', error);
-          reject(error);
-        });
-    });
-
-    const stmt = db.prepare(`
-      INSERT INTO todos (
-        date, displayOrder, category, meeting, item, begintime, endtime, 
-        plantime, actualtime, diffefent, planbegintime, etc
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    console.log('インポートされたデータの内容:');
-    results.forEach((item, index) => {
-      console.log(`アイテム ${index + 1}:`, JSON.stringify(item, null, 2));
-    });
-
-    // トランザクションを明示的に開始
-    const insertMany = db.transaction((items) => {
-      for (const item of items) {
-        try {
-          stmt.run(
-            item.date, item.displayOrder, item.category, item.meeting, item.item, 
-            item.begintime, item.endtime, item.plantime, item.actualtime, 
-            item.diffefent, item.planbegintime, item.etc
-          );
-        } catch (error) {
-          console.error('レコード挿入中にエラーが発生しました:', error);
-          console.error('問題のあるデータ:', item);
-          throw error; // トランザクションをロールバックするためにエラーを再スロー
-        }
-      }
-    });
-
-    // トランザクションを実行
-    insertMany(results);
-
-    // 挿入されたレコード数を確認
-    const count = db.prepare('SELECT COUNT(*) as count FROM todos').get();
-    console.log(`現在のtodosテーブルのレコード数: ${count.count}`);
-
-    console.log(`${results.length}件のデータをインポートしました`);
-    return { success: true, message: `${results.length}件のデータをインポートしました` };
-  } catch (error) {
-    console.error('CSVデータのインポート中にエラーが発生しました:', error);
-    return { success: false, message: error.message };
-  }
+  return await dbAccess.importCsvData(csvData);
 });
