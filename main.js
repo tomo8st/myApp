@@ -74,96 +74,41 @@ app.on('activate', () => {
   }
 })
 
-// testIpcイベントの定義 
-ipcMain.handle('testIpc', async (event, arg) => {
-  return await dbAccess.testIpc();
+// データベース操作のイベントハンドラを一括登録
+const dbOperations = {
+  // 基本的なTodo操作
+  'testIpc': { handler: 'testIpc' },
+  'writeArrayToJson': { handler: 'writeArrayToJson', hasArg: true },
+  'getItems': { handler: 'getItems', hasArg: true },
+  'insertItem': { handler: 'insertItem', hasArg: true },
+  'updateItem': { handler: 'updateItem', hasArg: true },
+  'deleteItem': { handler: 'deleteItem', hasArg: true },
+  'deleteTable': { handler: 'deleteTable' },
+  'deleteAndRecreateTable': { handler: 'deleteAndRecreateTable' },
+  'deleteAllTodos': { handler: 'deleteAllTodos' },
+  'getAllItems': { handler: 'getAllItems' },
+
+  // カテゴリ操作
+  'createCategoryTable': { handler: 'createCategoryTable' },
+  'insertInitialCategories': { handler: 'insertInitialCategories' },
+  'getCategories': { handler: 'getCategories' },
+  'addCategory': { handler: 'addCategory', hasArg: true },
+  'updateCategory': { handler: 'updateCategory', hasArg: true },
+  'deleteCategory': { handler: 'deleteCategory', hasArg: true },
+
+  // CSVインポート
+  'importCsvData': { handler: 'importCsvData', hasArg: true }
+};
+
+// イベントハンドラを一括登録
+Object.entries(dbOperations).forEach(([channel, { handler, hasArg }]) => {
+  ipcMain.handle(channel, async (event, arg) => {
+    return hasArg ? await dbAccess[handler](arg) : await dbAccess[handler]();
+  });
 });
 
-// 配列をJSONファイルに書き込むイベントを追加
-ipcMain.handle('writeArrayToJson', async (event, data) => {
-  return await dbAccess.writeArrayToJson(data);
-});
-
-// データ取得のイベントハンドラ
-ipcMain.handle('getItems', async (event, date) => {
-  return await dbAccess.getItems(date);
-});
-
-// データ挿入のイベントハンドラ
-ipcMain.handle('insertItem', async (event, item) => {
-  return await dbAccess.insertItem(item);
-});
-
-// データ更新のイベントハンドラ
-ipcMain.handle('updateItem', async (event, item) => {
-  return await dbAccess.updateItem(item);
-});
-
-// データ削除のイベントハンドラ
-ipcMain.handle('deleteItem', async (event, item) => {
-  return await dbAccess.deleteItem(item);
-});
-
-// テーブル削除のイベントハンドラ
-ipcMain.handle('deleteTable', async (event, item) => {
-  return await dbAccess.deleteTable();
-});
-
-// テーブル削除＆再作成のイベントハンドラ
-ipcMain.handle('deleteAndRecreateTable', async () => {
-  return await dbAccess.deleteAndRecreateTable();
-});
-
-// 全データ削除のイベントハンドラ
-ipcMain.handle('deleteAllTodos', async () => {
-  return await dbAccess.deleteAllTodos();
-});
-
-// -----------------------------------------------------------
-// カテゴリテーブルのイベントハンドラ
-// -----------------------------------------------------------
-
-// カテゴリテーブル作成のイベントハンドラ
-ipcMain.handle('createCategoryTable', async () => {
-  return await dbAccess.createCategoryTable();
-});
-
-// 初期テゴリ挿入のイベントハンドラ
-ipcMain.handle('insertInitialCategories', async () => {
-  return await dbAccess.insertInitialCategories();
-});
-
-// カテゴリ取得のイベントハンドラ
-ipcMain.handle('getCategories', async () => {
-  return await dbAccess.getCategories();
-});
-
-// データ削除のイベントハンドラ
+// アプリ終了時のイベントハンドラ
 app.on('will-quit', () => {
   // アプリ終了時にDBを閉じる
   if (db) db.close();
-});
-// addCategoryイベントハンドラの修正
-ipcMain.handle('addCategory', async (event, name) => {
-  return await dbAccess.addCategory(name);
-});
-
-// updateCategoryイベントハンドラの修正
-ipcMain.handle('updateCategory', async (event, category) => {
-  return await dbAccess.updateCategory(category);
-});
-
-// deleteCategoryイベントハンドラの修正
-ipcMain.handle('deleteCategory', async (event, categoryId) => {
-  return await dbAccess.deleteCategory(categoryId);
-});
-
-// 全データ取得のイベントハンドラ
-ipcMain.handle('getAllItems', async () => {
-  return await dbAccess.getAllItems();
-});
-
-// CSVデータをインポートするイベントハンドラ
-ipcMain.handle('importCsvData', async (event, csvData) => {
-  return await dbAccess.importCsvData(csvData);
 });
