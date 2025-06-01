@@ -287,16 +287,18 @@ export class TodoListComponent implements OnInit, AfterViewInit {
    * 指定された行を上に移動する
    * @param index 移動する行のインデックス
    */
-  public onClickMoveRowUpButton(index: number) {
-    this.moveRowUp(index);
+  public async onClickMoveRowUpButton(index: number) {
+    this.dataSource = this.utilService.moveRowUp(this.dataSource, index);
+    await this.renumberDisplayOrder();
   }
 
   /**
    * 指定された行を下に移動する
    * @param index 移動する行のインデックス
    */
-  public onClickMoveRowDownButton(index: number) {
-    this.moveRowDown(index);
+  public async onClickMoveRowDownButton(index: number) {
+    this.dataSource = this.utilService.moveRowDown(this.dataSource, index);
+    await this.renumberDisplayOrder();
   }
 
   /**
@@ -329,8 +331,21 @@ export class TodoListComponent implements OnInit, AfterViewInit {
    * 編集ボタン押下イベント
    * @param index 編集する行のインデックス
    */
-  public onClickEditButton(index: number) {
-    this.toggleEdit(index);
+  public async onClickEditButton(index: number) {
+    try {
+      const newEditableIndex = this.utilService.toggleEdit(this.editableIndex, index);
+      
+      // 編集モードが終了する場合（nullが返された場合）
+      if (newEditableIndex === null && this.editableIndex !== null) {
+        await this.todoService.saveData2db(this.dataSource);
+        this.calculateActualTimeAndDifference();
+        this.updateBeginTimes();
+      }
+      
+      this.editableIndex = newEditableIndex;
+    } catch (error) {
+      console.error('編集モードの切り替え中にエラーが発生しました:', error);
+    }
   }
   /**
    * データ保存のIPCイベントを呼び出す
@@ -813,71 +828,6 @@ export class TodoListComponent implements OnInit, AfterViewInit {
   // ------------------------------------------------------------
 
   /**
-   * エディットボタン押下イベント
-   * @param index 
-   */
-  private async toggleEdit(index: number) {
-    // 編集中の行が同じ場合は編集を終了し、データを保存する
-    if (this.editableIndex === index) {
-      this.editableIndex = null;
-      try {
-        await this.todoService.saveData2db(this.dataSource);
-        console.log('データが正常に保存されました');
-        this.calculateActualTimeAndDifference();
-        this.updateBeginTimes();
-      } catch (error) {
-        console.error('データの保存中にエラーが発生しました:', error);
-        // エラー処理（例：ユーザーへの通知）
-      }
-    } else {
-      // 編集モードに移行
-      this.editableIndex = index;
-    }
-  }
-
-  /**
-   * 指定された行を上に移動する
-   * @param index 移動する行のインデックス
-   */
-  private async moveRowUp(index: number) {
-    if (index > 0) {
-      const item = this.dataSource.splice(index, 1)[0];
-      this.dataSource.splice(index - 1, 0, item);
-      this.dataSource = [...this.dataSource];
-      this.renumberDisplayOrder();
-    }
-  }
-
-  /**
-   * 指定された行を下に移動する
-   * @param index 移動する行のインデックス
-   */
-  private async moveRowDown(index: number) {
-    if (index < this.dataSource.length - 1) {
-      const item = this.dataSource.splice(index, 1)[0];
-      this.dataSource.splice(index + 1, 0, item);
-      this.dataSource = [...this.dataSource];
-      this.renumberDisplayOrder();
-    }
-  }
-
-  /**
-   * displayOrderの値を再採番する
-   */
-  private async renumberDisplayOrder() {
-    this.dataSource.forEach((item: { displayOrder: any; }, idx: number) => {
-      item.displayOrder = idx + 1;
-    });
-    this.dataSource = [...this.dataSource];
-    try {
-      await this.todoService.saveData2db(this.dataSource);
-    } catch (error) {
-      console.error('データの保存中にエラーが発生しました:', error);
-      // エラー処理（例：ユーザーへの通知）
-    }
-  }
-
-  /**
    * 計画時刻を計算して更新する
    */
   private updatePlanBeginTimes() {
@@ -1003,6 +953,22 @@ export class TodoListComponent implements OnInit, AfterViewInit {
         const newValue = inputElement.value;
         this.onCellEditComplete(newValue, rowIndex, columnName);
       }
+    }
+  }
+
+  /**
+   * displayOrderの値を再採番する
+   */
+  private async renumberDisplayOrder() {
+    this.dataSource.forEach((item: { displayOrder: any; }, idx: number) => {
+      item.displayOrder = idx + 1;
+    });
+    this.dataSource = [...this.dataSource];
+    try {
+      await this.todoService.saveData2db(this.dataSource);
+    } catch (error) {
+      console.error('データの保存中にエラーが発生しました:', error);
+      // エラー処理（例：ユーザーへの通知）
     }
   }
 
