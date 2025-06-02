@@ -184,9 +184,9 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     // データを読み込む
     try {
       this.dataSource = await firstValueFrom(this.todoService.loadData(this.targetDate));
-      this.updatePlanBeginTimes();
+      this.dataSource = this.utilService.updatePlanBeginTimes(this.dataSource);
       this.updateBeginTimes();
-      this.calculateActualTimeAndDifference();
+      this.dataSource = this.utilService.calculateActualTimeAndDifference(this.dataSource);
     } catch (error) {
       console.error('データの読み込み中にエラーが発生しました:', error);
       this.dataSource = [];
@@ -237,9 +237,9 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     try {
       // データを読み込む
       this.dataSource = await firstValueFrom(this.todoService.loadData(this.targetDate));
-      this.updatePlanBeginTimes();
+      this.dataSource = this.utilService.updatePlanBeginTimes(this.dataSource);
       this.updateBeginTimes();
-      this.calculateActualTimeAndDifference();
+      this.dataSource = this.utilService.calculateActualTimeAndDifference(this.dataSource);
     } catch (error) {
       console.error('データの読み込み中にエラーが発生しました:', error);
       this.dataSource = [];
@@ -338,7 +338,6 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       // 編集モードが終了する場合（nullが返された場合）
       if (newEditableIndex === null && this.editableIndex !== null) {
         await this.todoService.saveData2db(this.dataSource);
-        this.calculateActualTimeAndDifference();
         this.updateBeginTimes();
       }
       
@@ -554,7 +553,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       this.editingCell = { rowIndex: null, columnName: null };
       try {
         await this.todoService.saveData2db(this.dataSource);
-        this.calculateActualTimeAndDifference();    // 実績時間を計算
+        this.dataSource = this.utilService.calculateActualTimeAndDifference(this.dataSource);    // 実績時間を計算
         this.updateBeginTimes();                    // 開始時刻を更新
       } catch (error) {
         console.error('データの保存中にエラーが発生しました:', error);
@@ -796,7 +795,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       this.dataSource = [...this.dataSource];
       try {
         await this.todoService.saveData2db(this.dataSource);
-        this.calculateActualTimeAndDifference();
+        this.dataSource = this.utilService.calculateActualTimeAndDifference(this.dataSource);
         this.updateBeginTimes();
       } catch (error) {
         console.error('データの保存中にエラーが発生しました:', error);
@@ -828,22 +827,13 @@ export class TodoListComponent implements OnInit, AfterViewInit {
   // ------------------------------------------------------------
 
   /**
-   * 計画時刻を計算して更新する
-   */
-  private updatePlanBeginTimes() {
-    if (this.dataSource && this.dataSource.length > 0) {
-      this.dataSource = this.utilService.updatePlanBeginTimes(this.dataSource);
-    }
-  }
-
-  /**
    * 実績時間を計算し、差異を算出する
    */
-  private calculateActualTimeAndDifference() {
-    if (this.dataSource && this.dataSource.length > 0) {
-      this.dataSource = this.utilService.calculateActualTimeAndDifference(this.dataSource);
-    }
-  }
+  // private calculateActualTimeAndDifference() {
+  //   if (this.dataSource && this.dataSource.length > 0) {
+  //     this.dataSource = this.utilService.calculateActualTimeAndDifference(this.dataSource);
+  //   }
+  // }
 
   /**
    * 前の行の終了時刻を次の行の開始時刻に設定する
