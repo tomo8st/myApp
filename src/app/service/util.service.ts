@@ -168,4 +168,55 @@ export class UtilService {
     result.setMinutes(result.getMinutes() + timeToAdd.getHours() * 60 + timeToAdd.getMinutes());
     return result;
   }
+
+  /**
+   * 前の行の終了時刻を次の行の開始時刻に設定する
+   * @param dataSource データソース
+   * @returns 更新されたデータソース
+   */
+  public updateBeginTimes(dataSource: any[]): any[] {
+    // データソースが存在し、長さが1以上の場合は処理を続行
+    if (dataSource && dataSource.length > 1) {
+      // データソースの各タスクに対して開始時刻を更新
+      for (let i = 1; i < dataSource.length; i++) {
+        const previousTask = dataSource[i - 1];
+        const currentTask = dataSource[i];
+        
+        // 前のタスクの終了時刻が空白の場合、現在のタスクの開始時刻も空白にする
+        if (!previousTask.endtime || previousTask.endtime.trim() === '') {
+          currentTask.begintime = '';
+        } else {
+          currentTask.begintime = previousTask.endtime;
+        }
+      }
+    }
+    return [...dataSource];
+  }
+
+  /**
+   * 編集を完了する
+   * @param editingCell 編集中のセル情報
+   * @param rowIndex 行インデックス
+   * @param columnName 列名
+   * @returns 入力要素から取得した新しい値、または要素が見つからない場合はnull
+   */
+  public finishEditing(rowIndex: number, columnName: string): string | null {
+    const inputElement = document.querySelector(`input[data-row="${rowIndex}"][data-column="${columnName}"]`) as HTMLInputElement;
+    if (inputElement) {
+      return inputElement.value;
+    }
+    return null;
+  }
+
+  /**
+   * displayOrderの値を再採番する
+   * @param dataSource データソース
+   * @returns 更新されたデータソース
+   */
+  public renumberDisplayOrder(dataSource: any[]): any[] {
+    dataSource.forEach((item: { displayOrder: any; }, idx: number) => {
+      item.displayOrder = idx + 1;
+    });
+    return [...dataSource];
+  }
 } 

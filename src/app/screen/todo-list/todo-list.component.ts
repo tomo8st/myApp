@@ -185,7 +185,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     try {
       this.dataSource = await firstValueFrom(this.todoService.loadData(this.targetDate));
       this.dataSource = this.utilService.updatePlanBeginTimes(this.dataSource);
-      this.updateBeginTimes();
+      this.dataSource = this.utilService.updateBeginTimes(this.dataSource);
       this.dataSource = this.utilService.calculateActualTimeAndDifference(this.dataSource);
     } catch (error) {
       console.error('データの読み込み中にエラーが発生しました:', error);
@@ -238,7 +238,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       // データを読み込む
       this.dataSource = await firstValueFrom(this.todoService.loadData(this.targetDate));
       this.dataSource = this.utilService.updatePlanBeginTimes(this.dataSource);
-      this.updateBeginTimes();
+      this.dataSource = this.utilService.updateBeginTimes(this.dataSource);
       this.dataSource = this.utilService.calculateActualTimeAndDifference(this.dataSource);
     } catch (error) {
       console.error('データの読み込み中にエラーが発生しました:', error);
@@ -289,7 +289,13 @@ export class TodoListComponent implements OnInit, AfterViewInit {
    */
   public async onClickMoveRowUpButton(index: number) {
     this.dataSource = this.utilService.moveRowUp(this.dataSource, index);
-    await this.renumberDisplayOrder();
+    this.dataSource = this.utilService.renumberDisplayOrder(this.dataSource);
+    try {
+      await this.todoService.saveData2db(this.dataSource);
+    } catch (error) {
+      console.error('データの保存中にエラーが発生しました:', error);
+      // エラー処理（例：ユーザーへの通知）
+    }
   }
 
   /**
@@ -298,7 +304,13 @@ export class TodoListComponent implements OnInit, AfterViewInit {
    */
   public async onClickMoveRowDownButton(index: number) {
     this.dataSource = this.utilService.moveRowDown(this.dataSource, index);
-    await this.renumberDisplayOrder();
+    this.dataSource = this.utilService.renumberDisplayOrder(this.dataSource);
+    try {
+      await this.todoService.saveData2db(this.dataSource);
+    } catch (error) {
+      console.error('データの保存中にエラーが発生しました:', error);
+      // エラー処理（例：ユーザーへの通知）
+    }
   }
 
   /**
@@ -338,7 +350,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       // 編集モードが終了する場合（nullが返された場合）
       if (newEditableIndex === null && this.editableIndex !== null) {
         await this.todoService.saveData2db(this.dataSource);
-        this.updateBeginTimes();
+        this.dataSource = this.utilService.updateBeginTimes(this.dataSource);
       }
       
       this.editableIndex = newEditableIndex;
@@ -554,7 +566,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       try {
         await this.todoService.saveData2db(this.dataSource);
         this.dataSource = this.utilService.calculateActualTimeAndDifference(this.dataSource);    // 実績時間を計算
-        this.updateBeginTimes();                    // 開始時刻を更新
+        this.dataSource = this.utilService.updateBeginTimes(this.dataSource);                    // 開始時刻を更新
       } catch (error) {
         console.error('データの保存中にエラーが発生しました:', error);
         // エラー処理（例：ユーザーへの通知）
@@ -612,7 +624,13 @@ export class TodoListComponent implements OnInit, AfterViewInit {
         event.preventDefault();
       } else if (event.key === 'Enter' && !this.isComposing) {
         // エンターキーが押された場合は値を保存し編集を終了して表示モードに切り替えて次の行に移動
-        this.finishEditing();
+        if (this.editingCell.rowIndex !== null && this.editingCell.columnName !== null) {
+          const { rowIndex, columnName } = this.editingCell;
+          const newValue = this.utilService.finishEditing(rowIndex, columnName);
+          if (newValue !== null) {
+            this.onCellEditComplete(newValue, rowIndex, columnName);
+          }
+        }
         if (this.selectedRowIndex < this.dataSource.length - 1) {
           this.selectedRowIndex++;
           this.updateSelectedCell();
@@ -620,7 +638,13 @@ export class TodoListComponent implements OnInit, AfterViewInit {
         event.preventDefault();
       } else if (event.key === 'F2') {
          // F2キーが押された場合は値を保存し編集を終了して表示モードに切り替え
-         this.finishEditing();
+         if (this.editingCell.rowIndex !== null && this.editingCell.columnName !== null) {
+          const { rowIndex, columnName } = this.editingCell;
+          const newValue = this.utilService.finishEditing(rowIndex, columnName);
+          if (newValue !== null) {
+            this.onCellEditComplete(newValue, rowIndex, columnName);
+          }
+        }
          event.preventDefault();
       }
       return;
@@ -796,7 +820,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       try {
         await this.todoService.saveData2db(this.dataSource);
         this.dataSource = this.utilService.calculateActualTimeAndDifference(this.dataSource);
-        this.updateBeginTimes();
+        this.dataSource = this.utilService.updateBeginTimes(this.dataSource);
       } catch (error) {
         console.error('データの保存中にエラーが発生しました:', error);
         // エラー処理（例：ユーザーへの通知）
@@ -817,72 +841,6 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       this.dataSource[rowIndex][columnName] = '';
       // ビューを更新
       this.changeDetectorRef.detectChanges();
-    }
-  }
-
-  // ------------------------------------------------------------
-  //
-  // ロジック群
-  //
-  // ------------------------------------------------------------
-
-  /**
-   * 実績時間を計算し、差異を算出する
-   */
-  // private calculateActualTimeAndDifference() {
-  //   if (this.dataSource && this.dataSource.length > 0) {
-  //     this.dataSource = this.utilService.calculateActualTimeAndDifference(this.dataSource);
-  //   }
-  // }
-
-  /**
-   * 前の行の終了時刻を次の行の開始時刻に設定する
-   */
-  private updateBeginTimes() {
-    // データソースが存在し、長さが1以上の場合は処理を続行
-    if (this.dataSource && this.dataSource.length > 1) {
-      // データソースの各タスクに対して開始時刻を更新
-      for (let i = 1; i < this.dataSource.length; i++) {
-        const previousTask = this.dataSource[i - 1];
-        const currentTask = this.dataSource[i];
-        
-        // 前のタスクの終了時刻が空白の場合、現在のタスクの開始時刻も空白にする
-        if (!previousTask.endtime || previousTask.endtime.trim() === '') {
-          currentTask.begintime = '';
-        } else {
-          currentTask.begintime = previousTask.endtime;
-        }
-      }
-      
-      // データソースを更新してビューを再描画
-      this.dataSource = [...this.dataSource];
-    }
-  }
-
-  private finishEditing() {
-    if (this.editingCell.rowIndex !== null && this.editingCell.columnName !== null) {
-      const { rowIndex, columnName } = this.editingCell;
-      const inputElement = document.querySelector(`input[data-row="${rowIndex}"][data-column="${columnName}"]`) as HTMLInputElement;
-      if (inputElement) {
-        const newValue = inputElement.value;
-        this.onCellEditComplete(newValue, rowIndex, columnName);
-      }
-    }
-  }
-
-  /**
-   * displayOrderの値を再採番する
-   */
-  private async renumberDisplayOrder() {
-    this.dataSource.forEach((item: { displayOrder: any; }, idx: number) => {
-      item.displayOrder = idx + 1;
-    });
-    this.dataSource = [...this.dataSource];
-    try {
-      await this.todoService.saveData2db(this.dataSource);
-    } catch (error) {
-      console.error('データの保存中にエラーが発生しました:', error);
-      // エラー処理（例：ユーザーへの通知）
     }
   }
 
