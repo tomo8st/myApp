@@ -23,10 +23,12 @@ import { Router } from '@angular/router';
 import { saveAs } from 'file-saver';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { CsvImportDialogComponent } from './csv-import-dialog.component';
 import { ConfirmDialogComponent } from './confirm-dialog.component';
 import { MatSelectChange } from '@angular/material/select';
 import { JapaneseWeekdayPipe } from './japanese-weekday.pipe';
+import { MatSnackBar } from '@angular/material/snack-bar';
 // import { ElectronService } from 'ngx-electron';
 
 
@@ -64,7 +66,7 @@ class MyDateAdapter extends NativeDateAdapter {
   standalone: true,
   imports: [CommonModule, FormsModule, MatButtonModule, MatToolbarModule, MatIconModule, 
             MatTableModule, MatFormFieldModule, MatInputModule, MatDatepickerModule,
-            MatSelectModule, MatDialogModule, JapaneseWeekdayPipe],
+            MatSelectModule, MatDialogModule, MatSnackBarModule, JapaneseWeekdayPipe],
   templateUrl: './todo-list.component.html',
   styleUrl: './todo-list.component.css',
   providers: [
@@ -137,6 +139,9 @@ export class TodoListComponent implements OnInit, AfterViewInit {
 
   private isEditing: boolean = false;
 
+  // コピーした行のデータを保持
+  private copiedRow: any = null;
+
   /**
    * コンストラクタ
    * @param categoryService カテゴリサービス
@@ -144,6 +149,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
    * @param utilService Utilサービス
    * @param router ルーター
    * @param dialog ダイアログ
+   * @param snackBar スナックバー
    */
   constructor(
     private categoryService: CategoryService,
@@ -151,7 +157,8 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     private utilService: UtilService,
     private router: Router, 
     private dialog: MatDialog,  
-    private changeDetectorRef: ChangeDetectorRef
+    private changeDetectorRef: ChangeDetectorRef,
+    private snackBar: MatSnackBar
   ) {}
 
   /**
@@ -695,6 +702,18 @@ export class TodoListComponent implements OnInit, AfterViewInit {
           return;
         }
         break;
+      case 'c':
+        if ((event.ctrlKey || event.metaKey) && this.selectedCell.rowIndex !== null) {
+          this.onClickCopyButton();
+          event.preventDefault();
+        }
+        break;
+      case 'v':
+        if ((event.ctrlKey || event.metaKey) && this.selectedCell.rowIndex !== null) {
+          this.onClickPasteButton();
+          event.preventDefault();
+        }
+        break;
       default:
         if (this.isEditableKey(event) 
                     && this.selectedCell.rowIndex !== null 
@@ -841,6 +860,82 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       this.dataSource[rowIndex][columnName] = '';
       // ビューを更新
       this.changeDetectorRef.detectChanges();
+    }
+  }
+
+  /**
+   * 行を複製する
+   */
+  public async onClickDuplicateButton() {
+    if (this.selectedCell.rowIndex !== null) {
+      try {
+        // 選択された行のデータをコピー
+        const sourceRow = { ...this.dataSource[this.selectedCell.rowIndex] };
+        
+        // IDと表示順以外の項目をコピー
+        const newRow = {
+          ...sourceRow,
+          id: null,  // 新しい行のIDはnullに設定（DBが自動採番）
+          displayOrder: this.dataSource.length + 1  // 表示順は最後に追加
+        };
+
+        // 新しい行を追加
+        this.dataSource.push(newRow);
+        this.dataSource = [...this.dataSource];
+        
+        // 表示順を振り直し
+        this.dataSource = this.utilService.renumberDisplayOrder(this.dataSource);
+        
+        // DBに保存
+        await this.todoService.saveData2db(this.dataSource);
+        
+        console.log('行が正常に複製されました');
+      } catch (error) {
+        console.error('行の複製中にエラーが発生しました:', error);
+      }
+    }
+  }
+
+  /**
+   * 行をコピーする
+   */
+  public onClickCopyButton() {
+    if (this.selectedCell.rowIndex !== null) {
+      this.copiedRow = { ...this.dataSource[this.selectedCell.rowIndex] };
+      // スナックバーでメッセージを表示
+      this.snackBar.open('行がコピーされました', '閉じる', {
+        duration: 2000,
+      });
+    }
+  }
+
+  /**
+   * コピーした行をペーストする
+   */
+  public async onClickPasteButton() {
+    if (this.selectedCell.rowIndex !== null && this.copiedRow) {
+      try {
+        // 新しい行を作成（IDと表示順以外の項目をコピー）
+        const newRow = {
+          ...this.copiedRow,
+          id: null,  // 新しい行のIDはnullに設定（DBが自動採番）
+          displayOrder: this.selectedCell.rowIndex + 1  // 選択行の上に挿入するため、選択行の表示順を使用
+        };
+
+        // 選択行の上に新しい行を挿入
+        this.dataSource.splice(this.selectedCell.rowIndex, 0, newRow);
+        this.dataSource = [...this.dataSource];
+        
+        // 表示順を振り直し
+        this.dataSource = this.utilService.renumberDisplayOrder(this.dataSource);
+        
+        // DBに保存
+        await this.todoService.saveData2db(this.dataSource);
+        
+        console.log('行が正常にペーストされました');
+      } catch (error) {
+        console.error('行のペースト中にエラーが発生しました:', error);
+      }
     }
   }
 
