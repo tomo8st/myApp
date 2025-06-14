@@ -407,3 +407,14 @@ input.mat-input-element {
 .category-select {
   font-size: 13px;
 }
+
+.delete-cell {
+  width: 48px;
+  text-align: center;
+  padding: 0;
+}
+
+.delete-cell button {
+  margin: 0;
+  padding: 0;
+}

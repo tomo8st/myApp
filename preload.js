@@ -11,7 +11,7 @@ contextBridge.exposeInMainWorld('electron', {
   getAllItems: () => ipcRenderer.invoke('getAllItems'),
   importCsvData: (csvData) => ipcRenderer.invoke('importCsvData', csvData),
   deleteAllTodos: () => ipcRenderer.invoke('deleteAllTodos'),
-  // deleteItem: (item) => ipcRenderer.invoke('deleteItem', item),
+  deleteItem: (item) => ipcRenderer.invoke('deleteItem', item),
   // deleteAndRecreateTable: () => ipcRenderer.invoke('deleteAndRecreateTable'),
   // testIpc: () => ipcRenderer.invoke('testIpc'),
   // writeArrayToJson: (data) => ipcRenderer.invoke('writeArrayToJson', data),

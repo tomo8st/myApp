@@ -44,6 +44,10 @@
   ペースト
 </button>
 
+<button type="button" name="button" (click)="onClickDeleteButton(selectedRowIndex)" [disabled]="selectedRowIndex === null">
+  削除
+</button>
+
 <button type="button" name="button" (click)="onClickClearButton()">
   クリア
 </button>
@@ -366,38 +370,38 @@
       </ng-container>
 
       <ng-container matColumnDef="etc" class="mat-column-etc">
-        <th mat-header-cell *matHeaderCellDef 
-            class="table-header">
-            備考
-        </th>
-        <td mat-cell *matCellDef="let element; let i = index"
-            class="table-cell"
+        <th mat-header-cell *matHeaderCellDef>備考</th>
+        <td mat-cell *matCellDef="let element; let i = index" 
             (click)="onCellClick($event, i, 'etc')"
-            (dblclick)="onCellDoubleClick($event, i, 'etc')"
-            [class.selected-cell]="selectedCell.rowIndex === i && selectedCell.columnName === 'etc'">
-          <ng-container *ngIf="isCellEditable(i, 'etc'); else readOnly">
-            <input matInput [(ngModel)]="element.etc" class="input-cell"
-                   (blur)="onCellEditComplete(element.etc, i, 'etc')"
-                   [attr.data-row]="i"
-                   [attr.data-column]="'etc'" />
+            (dblclick)="onCellDoubleClick($event, i, 'etc')">
+          <ng-container *ngIf="!isCellEditable(i, 'etc')">
+            {{element.etc}}
           </ng-container>
-          <ng-template #readOnly>
-            <div class="cell-content">{{element.etc}}</div>
-          </ng-template>
+          <ng-container *ngIf="isCellEditable(i, 'etc')">
+            <input matInput [(ngModel)]="element.etc" 
+                   (blur)="onCellEditComplete(element.etc, i, 'etc')"
+                   (keydown.enter)="onCellEditComplete(element.etc, i, 'etc')"
+                   (keydown.escape)="cancelEditing()"
+                   [attr.data-row]="i"
+                   [attr.data-column]="'etc'">
+          </ng-container>
         </td>
       </ng-container>
 
-      <!-- 削除ボタン列を追加 -->
-      <ng-container matColumnDef="delete" class="mat-column-delete" >
-        <th mat-header-cell *matHeaderCellDef> 削除 </th>
-        <td mat-cell *matCellDef="let element; let i = index">
-          <button mat-icon-button color="warn" (click)="onClickDeleteButton(i)">
+      <!-- 削除ボタン -->
+      <ng-container matColumnDef="delete">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let element; let i = index" class="delete-cell">
+          <button mat-icon-button color="warn" (click)="onClickDeleteButton(i)" matTooltip="削除">
             <mat-icon>delete</mat-icon>
           </button>
         </td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="my-row"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = index"
+          [class.selected-row]="i === selectedRowIndex"
+          (click)="onRowClick($event, i)">
+      </tr>
     </table>
 </div>

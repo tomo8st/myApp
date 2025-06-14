@@ -29,6 +29,7 @@ import { ConfirmDialogComponent } from './confirm-dialog.component';
 import { MatSelectChange } from '@angular/material/select';
 import { JapaneseWeekdayPipe } from './japanese-weekday.pipe';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 // import { ElectronService } from 'ngx-electron';
 
 
@@ -66,7 +67,8 @@ class MyDateAdapter extends NativeDateAdapter {
   standalone: true,
   imports: [CommonModule, FormsModule, MatButtonModule, MatToolbarModule, MatIconModule, 
             MatTableModule, MatFormFieldModule, MatInputModule, MatDatepickerModule,
-            MatSelectModule, MatDialogModule, MatSnackBarModule, JapaneseWeekdayPipe],
+            MatSelectModule, MatDialogModule, MatSnackBarModule, MatTooltipModule,
+            JapaneseWeekdayPipe],
   templateUrl: './todo-list.component.html',
   styleUrl: './todo-list.component.css',
   providers: [
@@ -92,8 +94,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     'actualtime',                         // 実績時間
     'diffefent',                          // 差異
     'planbegintime',                      // 計画時刻
-    'etc',                                // 備考
-    // 'delete'                              // 削除ボタン列を追加
+    'etc'                                 // 備考
   ];
   exportColumns: string[] = [
     'id',                                 // id 
@@ -623,7 +624,6 @@ export class TodoListComponent implements OnInit, AfterViewInit {
   handleKeyboardEvent(event: KeyboardEvent) {
     console.log('event.key:', event.key);
     // 編集モード中の処理
-    // if (this.editingCell.rowIndex !== null && this.editingCell.columnName !== null) {
     if (this.isEditing) {
       if (event.key === 'Escape') {
         // エスケープキーが押された場合は編集をキャンセルして表示モードに切り替え
@@ -690,8 +690,9 @@ export class TodoListComponent implements OnInit, AfterViewInit {
         }
         break;
       case 'Delete':
-        if (this.selectedCell.rowIndex !== null && this.selectedCell.columnName !== null) {
-          this.clearCellValue(this.selectedCell.rowIndex, this.selectedCell.columnName);
+        if (this.selectedCell.rowIndex !== null) {
+          this.deleteSelectedRow();
+          event.preventDefault();
         }
         break;
       case 'F2':
@@ -785,7 +786,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
   /**
    * 編集をキャンセルする
    */
-  private cancelEditing() {
+  public cancelEditing() {
     if (this.editingCell.rowIndex !== null && this.editingCell.columnName !== null) {
       const { rowIndex, columnName } = this.editingCell;
       this.dataSource[rowIndex][columnName] = this.originalValue;
@@ -937,6 +938,54 @@ export class TodoListComponent implements OnInit, AfterViewInit {
         console.error('行のペースト中にエラーが発生しました:', error);
       }
     }
+  }
+
+  /**
+   * 選択された行を削除する
+   */
+  private async deleteSelectedRow() {
+    if (this.selectedCell.rowIndex !== null) {
+      try {
+        // 確認ダイアログを表示
+        const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+          data: {
+            title: '確認',
+            message: '選択された行を削除しますか？'
+          }
+        });
+
+        // ダイアログが閉じた後の処理
+        dialogRef.afterClosed().subscribe(async result => {
+          if (result && this.selectedCell.rowIndex !== null) {
+            const rowIndex = this.selectedCell.rowIndex;
+            this.dataSource = await this.todoService.deleteRow(this.dataSource, rowIndex);
+            // 表示順を振り直し
+            this.dataSource = this.utilService.renumberDisplayOrder(this.dataSource);
+            // 選択位置を調整
+            if (this.selectedRowIndex >= this.dataSource.length) {
+              this.selectedRowIndex = this.dataSource.length - 1;
+            }
+            this.updateSelectedCell();
+          }
+        });
+      } catch (error) {
+        console.error('行の削除中にエラーが発生しました:', error);
+        this.snackBar.open('行の削除中にエラーが発生しました', '閉じる', {
+          duration: 3000,
+        });
+      }
+    }
+  }
+
+  /**
+   * 行クリックイベント
+   * @param event マウスイベント
+   * @param rowIndex 行インデックス
+   */
+  public onRowClick(event: MouseEvent, rowIndex: number) {
+    this.selectedRowIndex = rowIndex;
+    this.selectedColumnIndex = 0;
+    this.updateSelectedCell();
   }
 
 }
