@@ -101,15 +101,32 @@
 
 <div class="space_row"></div>
 
-<mat-form-field class="input-field factory-input">
-    <mat-label>日付</mat-label>
-    <input matInput [matDatepicker]="picker" placeholder="日付" 
-        autofocus #input1 class="ime-off" name="factory_input" 
-        (dateChange)="onDateChange($event)"
-        [(ngModel)]="targetDate">
-    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-    <mat-datepicker #picker></mat-datepicker>
-</mat-form-field>
+<div class="date-control-container">
+  <mat-form-field class="input-field factory-input">
+      <mat-label>日付</mat-label>
+      <input matInput [matDatepicker]="picker" placeholder="日付" 
+          autofocus #input1 class="ime-off" name="factory_input" 
+          (dateChange)="onDateChange($event)"
+          [(ngModel)]="targetDate">
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+  </mat-form-field>
+  
+  <div class="row-move-buttons">
+    <button mat-icon-button 
+            (click)="onClickMoveSelectedRowUp()" 
+            [disabled]="selectedRowIndex <= 0 || !dataSource || dataSource.length === 0"
+            matTooltip="選択行を上に移動">
+      <mat-icon>arrow_upward</mat-icon>
+    </button>
+    <button mat-icon-button 
+            (click)="onClickMoveSelectedRowDown()" 
+            [disabled]="selectedRowIndex >= (dataSource?.length || 0) - 1 || !dataSource || dataSource.length === 0"
+            matTooltip="選択行を下に移動">
+      <mat-icon>arrow_downward</mat-icon>
+    </button>
+  </div>
+</div>
 
 <div class="table-area">
     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" >
@@ -128,7 +145,7 @@
           <button mat-icon-button (click)="onClickMoveRowUpButton(i)" [disabled]="i === 0">
             <mat-icon>arrow_upward</mat-icon>
           </button>
-          <button mat-icon-button (click)="onClickMoveRowDownButton(i)" [disabled]="i === dataSource.length - 1">
+          <button mat-icon-button (click)="onClickMoveRowDownButton(i)" [disabled]="i === (dataSource?.length || 0) - 1">
             <mat-icon>arrow_downward</mat-icon>
           </button>
         </td>

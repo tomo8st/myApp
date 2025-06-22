@@ -528,3 +528,35 @@ input.mat-input-element {
   height: 30px !important;  /* 見出しセルの高さを30pxに設定 */
   min-height: 30px !important;
 }
+
+/* 日付コントロールとボタンのコンテナ */
+.date-control-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.date-control-container .factory-input {
+  flex: 1;
+  max-width: 200px;
+}
+
+.row-move-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.row-move-buttons button {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.row-move-buttons .mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}

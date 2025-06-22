@@ -80,7 +80,7 @@ class MyDateAdapter extends NativeDateAdapter {
 })
 export class TodoListComponent implements OnInit, AfterViewInit {
   username = 'Test Name';                 // ユーザー名
-  dataSource: any;                        // データソース
+  dataSource: any[] = [];                 // データソース
   displayedColumns: string[] =[
     // 'edit',                               // 編集ボタン列を追加 -> セルダブルクリックで編集するためコメントアウト
     // 'moveRow',                            // 行の移動ボタン列を追加
@@ -320,6 +320,70 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     } catch (error) {
       console.error('データの保存中にエラーが発生しました:', error);
       // エラー処理（例：ユーザーへの通知）
+    }
+  }
+
+  /**
+   * 選択された行を上に移動する
+   */
+  public async onClickMoveSelectedRowUp() {
+    console.log('onClickMoveSelectedRowUp() が呼び出されました');
+    console.log('selectedRowIndex:', this.selectedRowIndex);
+    console.log('dataSource.length:', this.dataSource.length);
+    
+    if (this.selectedRowIndex > 0) {
+      console.log('行を上に移動します');
+      this.dataSource = this.utilService.moveRowUp(this.dataSource, this.selectedRowIndex);
+      this.dataSource = this.utilService.renumberDisplayOrder(this.dataSource);
+      // 選択行のインデックスを更新
+      this.selectedRowIndex--;
+      // ビューを更新
+      this.changeDetectorRef.detectChanges();
+      // DOMの更新を待ってから選択セルを更新
+      setTimeout(() => {
+        this.updateSelectedCell();
+      }, 0);
+      try {
+        await this.todoService.saveData2db(this.dataSource);
+        console.log('行の移動が完了しました');
+      } catch (error) {
+        console.error('データの保存中にエラーが発生しました:', error);
+        // エラー処理（例：ユーザーへの通知）
+      }
+    } else {
+      console.log('最初の行のため移動できません');
+    }
+  }
+
+  /**
+   * 選択された行を下に移動する
+   */
+  public async onClickMoveSelectedRowDown() {
+    console.log('onClickMoveSelectedRowDown() が呼び出されました');
+    console.log('selectedRowIndex:', this.selectedRowIndex);
+    console.log('dataSource.length:', this.dataSource.length);
+    
+    if (this.selectedRowIndex < this.dataSource.length - 1) {
+      console.log('行を下に移動します');
+      this.dataSource = this.utilService.moveRowDown(this.dataSource, this.selectedRowIndex);
+      this.dataSource = this.utilService.renumberDisplayOrder(this.dataSource);
+      // 選択行のインデックスを更新
+      this.selectedRowIndex++;
+      // ビューを更新
+      this.changeDetectorRef.detectChanges();
+      // DOMの更新を待ってから選択セルを更新
+      setTimeout(() => {
+        this.updateSelectedCell();
+      }, 0);
+      try {
+        await this.todoService.saveData2db(this.dataSource);
+        console.log('行の移動が完了しました');
+      } catch (error) {
+        console.error('データの保存中にエラーが発生しました:', error);
+        // エラー処理（例：ユーザーへの通知）
+      }
+    } else {
+      console.log('最後の行のため移動できません');
     }
   }
 
@@ -625,6 +689,11 @@ export class TodoListComponent implements OnInit, AfterViewInit {
   @HostListener('window:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
     console.log('event.key:', event.key);
+    console.log('event.ctrlKey:', event.ctrlKey);
+    console.log('event.shiftKey:', event.shiftKey);
+    console.log('event.altKey:', event.altKey);
+    console.log('event.metaKey:', event.metaKey);
+    
     // 編集モード中の処理
     if (this.isEditing) {
       if (event.key === 'Escape') {
@@ -660,6 +729,21 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     }
 
     // 表示モード中の処理
+    // Command+↑キーで選択行を上に移動
+    if (event.key === 'ArrowUp' && event.metaKey) {
+      console.log('Command+↑キーが検出されました');
+      this.onClickMoveSelectedRowUp();
+      event.preventDefault();
+      return;
+    }
+    // Command+↓キーで選択行を下に移動
+    if (event.key === 'ArrowDown' && event.metaKey) {
+      console.log('Command+↓キーが検出されました');
+      this.onClickMoveSelectedRowDown();
+      event.preventDefault();
+      return;
+    }
+
     switch(event.key) {
       case 'Enter':
         if (this.selectedRowIndex < this.dataSource.length - 1) {
@@ -811,10 +895,10 @@ export class TodoListComponent implements OnInit, AfterViewInit {
    */
   private updateSelectedCell() {
     // 以前の選択を削除
-    const prevSelected = document.querySelector('.selected-cell');
-    if (prevSelected) {
-      prevSelected.classList.remove('selected-cell');
-    }
+    const prevSelected = document.querySelectorAll('.selected-cell');
+    prevSelected.forEach(element => {
+      element.classList.remove('selected-cell');
+    });
 
     // 新しい選択を適用
     const newSelected = document.querySelector(`table tr:nth-child(${this.selectedRowIndex + 1}) td:nth-child(${this.selectedColumnIndex + 1})`);
@@ -1010,7 +1094,9 @@ export class TodoListComponent implements OnInit, AfterViewInit {
       'F2: セル編集',
       'Delete: 行削除',
       'Ctrl+C: 行コピー',
-      'Ctrl+V: 行ペースト'
+      'Ctrl+V: 行ペースト',
+      'Command+↑: 選択行を上に移動',
+      'Command+↓: 選択行を下に移動'
     ];
     
     this.snackBar.open(shortcuts.join(' | '), '閉じる', {
