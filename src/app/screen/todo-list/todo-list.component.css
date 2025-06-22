@@ -3,7 +3,19 @@
   background-color: #f5f5f5;
   border-bottom: 1px solid #ddd;
   padding: 0;
-  min-height: 40px;
+  min-height: 28px !important;
+  height: 28px !important;
+}
+
+/* Material Designのデフォルトスタイルをオーバーライド */
+::ng-deep .menu-toolbar.mat-toolbar {
+  min-height: 28px !important;
+  height: 28px !important;
+}
+
+::ng-deep .menu-toolbar .mat-toolbar-row {
+  min-height: 28px !important;
+  height: 28px !important;
 }
 
 .menu-container {
@@ -16,10 +28,12 @@
   font-size: 14px;
   font-weight: 500;
   color: #333;
-  padding: 8px 16px;
+  padding: 4px 12px;
   border-radius: 0;
   min-width: 80px;
   text-transform: none;
+  height: 28px;
+  line-height: 28px;
 }
 
 .menu-button:hover {
