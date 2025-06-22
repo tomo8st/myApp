@@ -219,4 +219,17 @@ export class UtilService {
     });
     return [...dataSource];
   }
+
+  /**
+   * displayOrderの昇順でソートする
+   * @param dataSource データソース
+   * @returns ソートされたデータソース
+   */
+  public sortByDisplayOrder(dataSource: any[]): any[] {
+    return dataSource.sort((a, b) => {
+      const orderA = a.displayOrder || 0;
+      const orderB = b.displayOrder || 0;
+      return orderA - orderB;
+    });
+  }
 } 

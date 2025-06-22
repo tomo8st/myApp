@@ -71,6 +71,7 @@ async function getItems(date) {
         etc 
       FROM todos 
       WHERE date = ?
+      ORDER BY displayOrder ASC
     `);
     const items = stmt.all(date);
 

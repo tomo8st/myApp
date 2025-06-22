@@ -194,13 +194,16 @@ export class TodoService {
       console.log('getItems result:', result);
 
       if (Array.isArray(result)) {
-        return result;
+        // displayOrderの昇順でソート
+        const sortedResult = this.utilService.sortByDisplayOrder(result);
+        console.log('ソート後のデータ:', sortedResult);
+        return sortedResult;
       } else {
         console.error('予期しないデータ形式:', result);
         return [];
       }
     } catch (error) {
-      console.error('データの読み込み中にエラーが発生しました:', error);
+      console.error('データベースからの読み込み中にエラーが発生しました:', error);
       return [];
     }
   }

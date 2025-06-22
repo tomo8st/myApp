@@ -194,6 +194,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     // データを読み込む
     try {
       this.dataSource = await firstValueFrom(this.todoService.loadData(this.targetDate));
+      this.dataSource = this.utilService.sortByDisplayOrder(this.dataSource);
       this.dataSource = this.utilService.updatePlanBeginTimes(this.dataSource);
       this.dataSource = this.utilService.updateBeginTimes(this.dataSource);
       this.dataSource = this.utilService.calculateActualTimeAndDifference(this.dataSource);
@@ -247,6 +248,7 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     try {
       // データを読み込む
       this.dataSource = await firstValueFrom(this.todoService.loadData(this.targetDate));
+      this.dataSource = this.utilService.sortByDisplayOrder(this.dataSource);
       this.dataSource = this.utilService.updatePlanBeginTimes(this.dataSource);
       this.dataSource = this.utilService.updateBeginTimes(this.dataSource);
       this.dataSource = this.utilService.calculateActualTimeAndDifference(this.dataSource);
