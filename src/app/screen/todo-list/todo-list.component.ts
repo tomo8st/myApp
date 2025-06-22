@@ -15,6 +15,8 @@ import { ipcRenderer } from 'electron';
 import { DateAdapter, NativeDateAdapter } from '@angular/material/core';
 import { Injectable } from '@angular/core';
 import { MatSelectModule } from '@angular/material/select';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
 import { CategoryService } from '../../service/category.service';
 import { TodoService } from '../../service/todo.service';
 import { UtilService } from '../../service/util.service';
@@ -68,7 +70,7 @@ class MyDateAdapter extends NativeDateAdapter {
   imports: [CommonModule, FormsModule, MatButtonModule, MatToolbarModule, MatIconModule, 
             MatTableModule, MatFormFieldModule, MatInputModule, MatDatepickerModule,
             MatSelectModule, MatDialogModule, MatSnackBarModule, MatTooltipModule,
-            JapaneseWeekdayPipe],
+            MatMenuModule, MatDividerModule, JapaneseWeekdayPipe],
   templateUrl: './todo-list.component.html',
   styleUrl: './todo-list.component.css',
   providers: [
@@ -986,6 +988,34 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     this.selectedRowIndex = rowIndex;
     this.selectedColumnIndex = 0;
     this.updateSelectedCell();
+  }
+
+  /**
+   * アプリケーションについてを表示する
+   */
+  public showAbout() {
+    this.snackBar.open('ToDo管理アプリケーション v1.0.0', '閉じる', {
+      duration: 3000,
+    });
+  }
+
+  /**
+   * キーボードショートカットを表示する
+   */
+  public showKeyboardShortcuts() {
+    const shortcuts = [
+      'Enter: 次の行に移動',
+      '↑↓: 行の移動',
+      '←→: 列の移動',
+      'F2: セル編集',
+      'Delete: 行削除',
+      'Ctrl+C: 行コピー',
+      'Ctrl+V: 行ペースト'
+    ];
+    
+    this.snackBar.open(shortcuts.join(' | '), '閉じる', {
+      duration: 5000,
+    });
   }
 
 }

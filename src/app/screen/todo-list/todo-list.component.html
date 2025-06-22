@@ -1,3 +1,104 @@
+<!-- メニューバー -->
+<mat-toolbar class="menu-toolbar">
+  <div class="menu-container">
+    <!-- ファイルメニュー -->
+    <button mat-button [matMenuTriggerFor]="fileMenu" class="menu-button">
+      ファイル
+    </button>
+    <mat-menu #fileMenu="matMenu">
+      <button mat-menu-item (click)="onClickCsvImportButton()">
+        <mat-icon>file_upload</mat-icon>
+        <span>CSVインポート</span>
+      </button>
+      <button mat-menu-item (click)="onClickCsvExportButton()">
+        <mat-icon>file_download</mat-icon>
+        <span>CSVエクスポート</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="onClickDbSaveButton()">
+        <mat-icon>save</mat-icon>
+        <span>DB保存</span>
+      </button>
+      <button mat-menu-item (click)="onClickDbSearchButton()">
+        <mat-icon>search</mat-icon>
+        <span>DB検索</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="onClickTableDeleteAndRecreateButton()">
+        <mat-icon>delete_forever</mat-icon>
+        <span>テーブル削除＆再作成</span>
+      </button>
+    </mat-menu>
+
+    <!-- 編集メニュー -->
+    <button mat-button [matMenuTriggerFor]="editMenu" class="menu-button">
+      編集
+    </button>
+    <mat-menu #editMenu="matMenu">
+      <button mat-menu-item (click)="onClickPlusButton()">
+        <mat-icon>add</mat-icon>
+        <span>新規追加</span>
+      </button>
+      <button mat-menu-item (click)="onClickDuplicateButton()">
+        <mat-icon>content_copy</mat-icon>
+        <span>行複製</span>
+      </button>
+      <button mat-menu-item (click)="onClickCopyButton()">
+        <mat-icon>copy</mat-icon>
+        <span>コピー</span>
+      </button>
+      <button mat-menu-item (click)="onClickPasteButton()">
+        <mat-icon>content_paste</mat-icon>
+        <span>ペースト</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="onClickDeleteButton(selectedRowIndex)" [disabled]="selectedRowIndex === null">
+        <mat-icon>delete</mat-icon>
+        <span>削除</span>
+      </button>
+      <button mat-menu-item (click)="onClickDeleteAllTodosButton()">
+        <mat-icon>delete_sweep</mat-icon>
+        <span>全ToDo削除</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="onClickClearButton()">
+        <mat-icon>clear</mat-icon>
+        <span>クリア</span>
+      </button>
+    </mat-menu>
+
+    <!-- 表示メニュー -->
+    <button mat-button [matMenuTriggerFor]="viewMenu" class="menu-button">
+      表示
+    </button>
+    <mat-menu #viewMenu="matMenu">
+      <button mat-menu-item (click)="onClickArrayDisplayButton()">
+        <mat-icon>list</mat-icon>
+        <span>配列表示</span>
+      </button>
+      <button mat-menu-item (click)="navigateToCategoryManagement()">
+        <mat-icon>category</mat-icon>
+        <span>カテゴリー管理</span>
+      </button>
+    </mat-menu>
+
+    <!-- ヘルプメニュー -->
+    <button mat-button [matMenuTriggerFor]="helpMenu" class="menu-button">
+      ヘルプ
+    </button>
+    <mat-menu #helpMenu="matMenu">
+      <button mat-menu-item (click)="showAbout()">
+        <mat-icon>info</mat-icon>
+        <span>アプリケーションについて</span>
+      </button>
+      <button mat-menu-item (click)="showKeyboardShortcuts()">
+        <mat-icon>keyboard</mat-icon>
+        <span>キーボードショートカット</span>
+      </button>
+    </mat-menu>
+  </div>
+</mat-toolbar>
+
 <div class="space_row"></div>
 
 <mat-form-field class="input-field factory-input">
