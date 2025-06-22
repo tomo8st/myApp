@@ -544,7 +544,7 @@ input.mat-input-element {
 
 .row-move-buttons {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 4px;
 }
 
