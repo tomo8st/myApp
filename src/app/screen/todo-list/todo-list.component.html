@@ -52,6 +52,15 @@
         <span>ペースト</span>
       </button>
       <mat-divider></mat-divider>
+      <button mat-menu-item (click)="onClickMoveSelectedRowUp()" [disabled]="selectedRowIndex <= 0 || !dataSource || dataSource.length === 0">
+        <mat-icon>arrow_upward</mat-icon>
+        <span>行を１行上に移動</span>
+      </button>
+      <button mat-menu-item (click)="onClickMoveSelectedRowDown()" [disabled]="selectedRowIndex >= (dataSource?.length || 0) - 1 || !dataSource || dataSource.length === 0">
+        <mat-icon>arrow_downward</mat-icon>
+        <span>行を１行下に移動</span>
+      </button>
+      <mat-divider></mat-divider>
       <button mat-menu-item (click)="onClickDeleteButton(selectedRowIndex)" [disabled]="selectedRowIndex === null">
         <mat-icon>delete</mat-icon>
         <span>削除</span>
