@@ -28,6 +28,8 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { CsvImportDialogComponent } from './csv-import-dialog.component';
 import { ConfirmDialogComponent } from './confirm-dialog.component';
+import { AboutDialogComponent } from './about-dialog.component';
+import { ShortcutsDialogComponent } from './shortcuts-dialog.component';
 import { MatSelectChange } from '@angular/material/select';
 import { JapaneseWeekdayPipe } from './japanese-weekday.pipe';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -1080,8 +1082,9 @@ export class TodoListComponent implements OnInit, AfterViewInit {
    * アプリケーションについてを表示する
    */
   public showAbout() {
-    this.snackBar.open('ToDo管理アプリケーション v1.0.0', '閉じる', {
-      duration: 3000,
+    this.dialog.open(AboutDialogComponent, {
+      width: '500px',
+      data: {}
     });
   }
 
@@ -1089,20 +1092,9 @@ export class TodoListComponent implements OnInit, AfterViewInit {
    * キーボードショートカットを表示する
    */
   public showKeyboardShortcuts() {
-    const shortcuts = [
-      'Enter: 次の行に移動',
-      '↑↓: 行の移動',
-      '←→: 列の移動',
-      'F2: セル編集',
-      'Delete: 行削除',
-      'Ctrl+C: 行コピー',
-      'Ctrl+V: 行ペースト',
-      'Command+↑: 選択行を上に移動',
-      'Command+↓: 選択行を下に移動'
-    ];
-    
-    this.snackBar.open(shortcuts.join(' | '), '閉じる', {
-      duration: 5000,
+    this.dialog.open(ShortcutsDialogComponent, {
+      width: '800px',
+      data: {}
     });
   }
 
