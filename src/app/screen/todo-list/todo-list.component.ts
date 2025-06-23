@@ -30,6 +30,7 @@ import { CsvImportDialogComponent } from './csv-import-dialog.component';
 import { ConfirmDialogComponent } from './confirm-dialog.component';
 import { AboutDialogComponent } from './about-dialog.component';
 import { ShortcutsDialogComponent } from './shortcuts-dialog.component';
+import { DuplicateDayDialogComponent } from './duplicate-day-dialog.component';
 import { MatSelectChange } from '@angular/material/select';
 import { JapaneseWeekdayPipe } from './japanese-weekday.pipe';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -1095,6 +1096,59 @@ export class TodoListComponent implements OnInit, AfterViewInit {
     this.dialog.open(ShortcutsDialogComponent, {
       width: '800px',
       data: {}
+    });
+  }
+
+  /**
+   * 1日分のToDoを複製する
+   */
+  public async onClickDuplicateDayButton() {
+    if (!this.targetDate || this.dataSource.length === 0) {
+      this.snackBar.open('複製するデータがありません', '閉じる', {
+        duration: 3000,
+      });
+      return;
+    }
+
+    // 複製ダイアログを表示
+    const dialogRef = this.dialog.open(DuplicateDayDialogComponent, {
+      width: '500px',
+      data: {
+        sourceDate: this.targetDate,
+        todoCount: this.dataSource.length
+      }
+    });
+
+    // ダイアログが閉じた後の処理
+    dialogRef.afterClosed().subscribe(async (targetDate: Date) => {
+      if (targetDate) {
+        try {
+          // 日付を文字列に変換
+          const formattedTargetDate = this.utilService.formatDate(targetDate);
+          
+          // 現在のデータをコピーして新しい日付に設定
+          const duplicatedTodos = this.dataSource.map(todo => ({
+            ...todo,
+            id: null,  // 新しいIDはDBが自動採番
+            date: formattedTargetDate,  // 日付を文字列に変換
+            displayOrder: null  // 表示順は後で振り直し
+          }));
+
+          // 新しいデータをDBに保存
+          await this.todoService.saveData2db(duplicatedTodos);
+          
+          this.snackBar.open(`${targetDate.toLocaleDateString('ja-JP')}に${this.dataSource.length}件のToDoを複製しました`, '閉じる', {
+            duration: 3000,
+          });
+          
+          console.log('1日分のToDoが正常に複製されました');
+        } catch (error) {
+          console.error('1日分のToDo複製中にエラーが発生しました:', error);
+          this.snackBar.open('複製中にエラーが発生しました', '閉じる', {
+            duration: 3000,
+          });
+        }
+      }
     });
   }
 
