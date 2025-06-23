@@ -60,7 +60,7 @@
         <mat-icon>arrow_upward</mat-icon>
         <span>行を１行上に移動</span>
       </button>
-      <button mat-menu-item (click)="onClickMoveSelectedRowDown()" [disabled]="selectedRowIndex >= (dataSource?.length || 0) - 1 || !dataSource || dataSource.length === 0">
+      <button mat-menu-item (click)="onClickMoveSelectedRowDown()" [disabled]="selectedRowIndex >= dataSource.length - 1 || !dataSource || dataSource.length === 0">
         <mat-icon>arrow_downward</mat-icon>
         <span>行を１行下に移動</span>
       </button>
@@ -134,7 +134,7 @@
     </button>
     <button mat-icon-button 
             (click)="onClickMoveSelectedRowDown()" 
-            [disabled]="selectedRowIndex >= (dataSource?.length || 0) - 1 || !dataSource || dataSource.length === 0"
+            [disabled]="selectedRowIndex >= dataSource.length - 1 || !dataSource || dataSource.length === 0"
             matTooltip="選択行を下に移動">
       <mat-icon>arrow_downward</mat-icon>
     </button>
@@ -158,7 +158,7 @@
           <button mat-icon-button (click)="onClickMoveRowUpButton(i)" [disabled]="i === 0">
             <mat-icon>arrow_upward</mat-icon>
           </button>
-          <button mat-icon-button (click)="onClickMoveRowDownButton(i)" [disabled]="i === (dataSource?.length || 0) - 1">
+          <button mat-icon-button (click)="onClickMoveRowDownButton(i)" [disabled]="i === dataSource.length - 1">
             <mat-icon>arrow_downward</mat-icon>
           </button>
         </td>

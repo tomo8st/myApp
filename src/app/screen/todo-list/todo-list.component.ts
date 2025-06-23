@@ -1127,11 +1127,11 @@ export class TodoListComponent implements OnInit, AfterViewInit {
           const formattedTargetDate = this.utilService.formatDate(targetDate);
           
           // 現在のデータをコピーして新しい日付に設定
-          const duplicatedTodos = this.dataSource.map(todo => ({
+          const duplicatedTodos = this.dataSource.map((todo, index) => ({
             ...todo,
             id: null,  // 新しいIDはDBが自動採番
             date: formattedTargetDate,  // 日付を文字列に変換
-            displayOrder: null  // 表示順は後で振り直し
+            displayOrder: index + 1  // 表示順を連番で設定
           }));
 
           // 新しいデータをDBに保存
